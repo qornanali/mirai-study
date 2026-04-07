@@ -273,6 +273,12 @@
   color: #b91c1c;
 }
 
+.audio-error-panel {
+  align-items: start;
+  display: grid;
+  gap: 0.6rem;
+}
+
 .completion-panel {
   background: #fff7ed;
   border: 1px solid #fed7aa;

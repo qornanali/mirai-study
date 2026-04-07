@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { selectVoiceForJapanesePlayback } from "./voiceSelection";
 
 describe("selectVoiceForJapanesePlayback", () => {
-  it("returns a preferred voice when it exists", () => {
+  it("returns a preferred japanese voice when it exists", () => {
     const voice = selectVoiceForJapanesePlayback(
       [
         {
@@ -15,13 +15,19 @@ describe("selectVoiceForJapanesePlayback", () => {
           voiceURI: "voice-ja",
           name: "Japanese Voice",
           lang: "ja-JP",
+          default: false,
+        },
+        {
+          voiceURI: "voice-ja-2",
+          name: "Japanese Voice 2",
+          lang: "ja-JP",
           default: true,
         },
       ],
-      "voice-en",
+      "voice-ja",
     );
 
-    expect(voice?.voiceURI).toBe("voice-en");
+    expect(voice?.voiceURI).toBe("voice-ja");
   });
 
   it("falls back to a japanese voice when preferred voice is unavailable", () => {
@@ -46,7 +52,7 @@ describe("selectVoiceForJapanesePlayback", () => {
     expect(voice?.voiceURI).toBe("voice-ja");
   });
 
-  it("falls back to first available voice when japanese voices are missing", () => {
+  it("returns null when japanese voices are missing", () => {
     const voice = selectVoiceForJapanesePlayback([
       {
         voiceURI: "voice-en",
@@ -62,6 +68,6 @@ describe("selectVoiceForJapanesePlayback", () => {
       },
     ]);
 
-    expect(voice?.voiceURI).toBe("voice-en");
+    expect(voice).toBeNull();
   });
 });

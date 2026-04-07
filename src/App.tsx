@@ -95,12 +95,17 @@ function App() {
 
   const isWritingPrompt = activeItem?.module === "writing";
   const isListeningPrompt = activeItem?.module === "listening";
+  const availableJapaneseVoices = availableVoices.filter((voice) =>
+    voice.lang.toLowerCase().startsWith("ja"),
+  );
 
   const playListeningAudio = useCallback(
-    (prompt: VocabItem) => {
+    (prompt: VocabItem): boolean => {
       if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-        setAudioError("Speech synthesis is not available in this browser.");
-        return;
+        setAudioError(
+          "Japanese text-to-speech is not available in this browser.",
+        );
+        return false;
       }
 
       const synthesis = window.speechSynthesis;
@@ -117,7 +122,8 @@ function App() {
         utterance.voice = selectedVoice;
         utterance.lang = selectedVoice.lang;
       } else {
-        utterance.lang = "ja-JP";
+        setAudioError("No Japanese voice is available on this device.");
+        return false;
       }
       utterance.rate = ttsRate;
       utterance.pitch = ttsPitch;
@@ -131,15 +137,18 @@ function App() {
 
       synthesis.cancel();
       synthesis.speak(utterance);
+      return true;
     },
     [ttsPitch, ttsRate, voicePreference],
   );
 
   const playListeningText = useCallback(
-    (text: string) => {
+    (text: string): boolean => {
       if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-        setAudioError("Speech synthesis is not available in this browser.");
-        return;
+        setAudioError(
+          "Japanese text-to-speech is not available in this browser.",
+        );
+        return false;
       }
 
       const synthesis = window.speechSynthesis;
@@ -154,7 +163,8 @@ function App() {
         utterance.voice = selectedVoice;
         utterance.lang = selectedVoice.lang;
       } else {
-        utterance.lang = "ja-JP";
+        setAudioError("No Japanese voice is available on this device.");
+        return false;
       }
       utterance.rate = ttsRate;
       utterance.pitch = ttsPitch;
@@ -168,6 +178,7 @@ function App() {
 
       synthesis.cancel();
       synthesis.speak(utterance);
+      return true;
     },
     [ttsPitch, ttsRate, voicePreference],
   );
@@ -616,22 +627,23 @@ function App() {
                 className="settings-select"
                 value={voicePreference ?? ""}
                 disabled={
-                  availableVoices.length === 0 || isSavingVoicePreference
+                  availableJapaneseVoices.length === 0 ||
+                  isSavingVoicePreference
                 }
                 onChange={(event) => {
                   void handleVoicePreferenceChange(event.target.value);
                 }}
               >
                 <option value="">Automatic Japanese fallback</option>
-                {availableVoices.map((voice) => (
+                {availableJapaneseVoices.map((voice) => (
                   <option key={voice.voiceURI} value={voice.voiceURI}>
                     {voice.name} ({voice.lang})
                   </option>
                 ))}
               </select>
-              {availableVoices.length === 0 && (
+              {availableJapaneseVoices.length === 0 && (
                 <p className="practice-hint">
-                  No browser voices are currently available.
+                  No Japanese TTS voice is currently available.
                 </p>
               )}
 
@@ -851,9 +863,18 @@ function App() {
                             Replay audio
                           </button>
                           {audioError && (
-                            <p className="status-message status-message--error">
-                              {audioError}
-                            </p>
+                            <div className="audio-error-panel">
+                              <p className="status-message status-message--error">
+                                {audioError}
+                              </p>
+                              <button
+                                className="secondary-button"
+                                type="button"
+                                onClick={handleNextItem}
+                              >
+                                Skip item
+                              </button>
+                            </div>
                           )}
                         </>
                       ) : (

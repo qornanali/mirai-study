@@ -13,8 +13,16 @@ export function selectVoiceForJapanesePlayback<T extends SelectableVoice>(
     return null;
   }
 
+  const japaneseVoices = voices.filter((voice) =>
+    voice.lang.toLowerCase().startsWith("ja"),
+  );
+
+  if (japaneseVoices.length === 0) {
+    return null;
+  }
+
   if (preferredVoice) {
-    const preferred = voices.find(
+    const preferred = japaneseVoices.find(
       (voice) =>
         voice.voiceURI === preferredVoice ||
         voice.name.toLowerCase() === preferredVoice.toLowerCase(),
@@ -25,15 +33,7 @@ export function selectVoiceForJapanesePlayback<T extends SelectableVoice>(
     }
   }
 
-  const japaneseVoices = voices.filter((voice) =>
-    voice.lang.toLowerCase().startsWith("ja"),
+  return (
+    japaneseVoices.find((voice) => voice.default) ?? japaneseVoices[0] ?? null
   );
-
-  if (japaneseVoices.length > 0) {
-    return (
-      japaneseVoices.find((voice) => voice.default) ?? japaneseVoices[0] ?? null
-    );
-  }
-
-  return voices.find((voice) => voice.default) ?? voices[0] ?? null;
 }
