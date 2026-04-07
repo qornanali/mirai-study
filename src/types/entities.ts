@@ -6,7 +6,7 @@ export interface VocabItem {
   id: string;
   level: JLPTLevel;
   japanese: string;
-  reading?: string;
+  reading?: string | undefined;
   english: string;
   partOfSpeech: "verb" | "noun" | "adjective" | "adverb" | "other";
   tags: string[];
@@ -28,6 +28,6 @@ export interface SentenceItem {
   level: JLPTLevel;
   japanese: string;
   english: string;
-  reading?: string;
+  reading?: string | undefined;
   vocabIds: string[];
 }
