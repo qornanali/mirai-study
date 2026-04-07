@@ -26,6 +26,16 @@ interface CompletedSessionSummary {
   correct: number;
 }
 
+type InstallPromptOutcome = "accepted" | "dismissed";
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{
+    outcome: InstallPromptOutcome;
+    platform: string;
+  }>;
+}
+
 let bootstrapPromise: Promise<AppBootstrapResult> | null = null;
 let appReadyPromise: Promise<{
   bootstrapResult: AppBootstrapResult;
@@ -78,6 +88,10 @@ function App() {
   >([]);
   const [isSavingVoicePreference, setIsSavingVoicePreference] = useState(false);
   const [settingsError, setSettingsError] = useState<string | null>(null);
+  const [installPromptEvent, setInstallPromptEvent] =
+    useState<BeforeInstallPromptEvent | null>(null);
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
+  const [isInstallingApp, setIsInstallingApp] = useState(false);
 
   const isWritingPrompt = activeItem?.module === "writing";
   const isListeningPrompt = activeItem?.module === "listening";
@@ -219,6 +233,45 @@ function App() {
 
     return () => {
       synthesis.removeEventListener("voiceschanged", updateVoices);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      ("standalone" in navigator &&
+        Boolean(
+          (navigator as Navigator & { standalone?: boolean }).standalone,
+        ));
+
+    if (isStandalone) {
+      setIsAppInstalled(true);
+    }
+
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPromptEvent(event as BeforeInstallPromptEvent);
+    };
+
+    const handleAppInstalled = () => {
+      setIsAppInstalled(true);
+      setInstallPromptEvent(null);
+      setIsInstallingApp(false);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
+
+    return () => {
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
+      window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
 
@@ -427,6 +480,34 @@ function App() {
     }
   }
 
+  async function handleInstallApp() {
+    if (!installPromptEvent) {
+      return;
+    }
+
+    setIsInstallingApp(true);
+    setSettingsError(null);
+
+    try {
+      await installPromptEvent.prompt();
+      const choiceResult = await installPromptEvent.userChoice;
+
+      if (choiceResult.outcome === "accepted") {
+        setIsAppInstalled(true);
+      }
+
+      setInstallPromptEvent(null);
+    } catch (error) {
+      setSettingsError(
+        error instanceof Error
+          ? error.message
+          : "Failed to open install prompt.",
+      );
+    } finally {
+      setIsInstallingApp(false);
+    }
+  }
+
   async function handleNextItem() {
     if (!sessionPlan) {
       return;
@@ -597,6 +678,37 @@ function App() {
                   {settingsError}
                 </p>
               )}
+
+              <div className="install-panel">
+                <p className="section-label">Install app</p>
+                {isAppInstalled ? (
+                  <p className="practice-hint">
+                    App is installed on this device.
+                  </p>
+                ) : installPromptEvent ? (
+                  <>
+                    <p className="practice-hint">
+                      Install Renshuu for a full-screen, app-like experience.
+                    </p>
+                    <button
+                      className="secondary-button"
+                      type="button"
+                      onClick={() => {
+                        void handleInstallApp();
+                      }}
+                      disabled={isInstallingApp}
+                    >
+                      {isInstallingApp
+                        ? "Opening install prompt..."
+                        : "Install app"}
+                    </button>
+                  </>
+                ) : (
+                  <p className="practice-hint">
+                    Install option will appear when supported by your browser.
+                  </p>
+                )}
+              </div>
             </section>
 
             {sessionPlan && (
