@@ -1,15 +1,114 @@
+import { useEffect, useState } from "react";
+import { initializeAppData, type AppBootstrapResult } from "./app/bootstrap";
+import { db } from "./data/dexie";
 import "./App.css";
 
+type AppStatus = "loading" | "ready" | "error";
+
+let bootstrapPromise: Promise<AppBootstrapResult> | null = null;
+
 function App() {
+  const [status, setStatus] = useState<AppStatus>("loading");
+  const [bootstrapResult, setBootstrapResult] =
+    useState<AppBootstrapResult | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function bootstrap() {
+      try {
+        bootstrapPromise ??= initializeAppData(db);
+        const result = await bootstrapPromise;
+
+        if (cancelled) {
+          return;
+        }
+
+        setBootstrapResult(result);
+        setStatus("ready");
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Failed to initialize app data.";
+
+        setErrorMessage(message);
+        setStatus("error");
+      }
+    }
+
+    void bootstrap();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
-    <main style={{ margin: "0 auto", maxWidth: 900, padding: "2rem 1rem" }}>
-      <h1>Renshuu MVP</h1>
-      <p>Phase 1 foundation is in progress.</p>
-      <ul>
-        <li>Strict TypeScript and test tooling configured</li>
-        <li>Core domain types and repository contracts created</li>
-        <li>Zod runtime schemas and baseline value object tests added</li>
-      </ul>
+    <main className="app-shell">
+      <section className="hero-panel">
+        <p className="eyebrow">Offline-first Japanese study</p>
+        <h1>Renshuu</h1>
+        <p className="hero-copy">
+          The app now boots its local database on first run and loads starter
+          JLPT N5 study content automatically.
+        </p>
+      </section>
+
+      <section className="status-card" aria-live="polite">
+        <header className="status-header">
+          <div>
+            <p className="section-label">Startup status</p>
+            <h2>
+              {status === "loading" && "Preparing local study data"}
+              {status === "ready" && "Local study data is ready"}
+              {status === "error" && "Startup failed"}
+            </h2>
+          </div>
+          <span className={`status-pill status-pill--${status}`}>{status}</span>
+        </header>
+
+        {status === "loading" && (
+          <p className="status-message">
+            Initializing IndexedDB and checking whether starter content needs to
+            be imported.
+          </p>
+        )}
+
+        {status === "error" && (
+          <p className="status-message status-message--error">{errorMessage}</p>
+        )}
+
+        {status === "ready" && bootstrapResult && (
+          <>
+            <p className="status-message">
+              {bootstrapResult.seeded
+                ? `Starter seed pack ${bootstrapResult.seedPackId} was imported on this run.`
+                : "Existing local content was found, so seeding was skipped."}
+            </p>
+
+            <div className="summary-grid">
+              <article>
+                <span className="summary-label">Vocabulary</span>
+                <strong>{bootstrapResult.summary.vocab}</strong>
+              </article>
+              <article>
+                <span className="summary-label">Kanji</span>
+                <strong>{bootstrapResult.summary.kanji}</strong>
+              </article>
+              <article>
+                <span className="summary-label">Sentences</span>
+                <strong>{bootstrapResult.summary.sentences}</strong>
+              </article>
+            </div>
+          </>
+        )}
+      </section>
     </main>
   );
 }
