@@ -189,6 +189,38 @@ describe("submitSessionAnswer", () => {
     expect(result.userProgress.id).toBe("writing:v2");
   });
 
+  it("grades listening answers with fuzzy matching", async () => {
+    const progressRepo = new FakeProgressRepo(null, null);
+
+    const result = await submitSessionAnswer(
+      {
+        dataRepo: new FakeDataRepo({
+          id: "v3",
+          level: "N5",
+          japanese: "学生",
+          reading: "がくせい",
+          english: "student",
+          partOfSpeech: "noun",
+          tags: ["school"],
+        }),
+        progressRepo,
+      },
+      {
+        item: {
+          itemId: "v3",
+          module: "listening",
+          type: "new",
+        },
+        nowIso: "2026-04-07T12:45:00.000Z",
+        userAnswer: "がくせ",
+      },
+    );
+
+    expect(result.attempt.result.score).toBe(0.75);
+    expect(result.attempt.result.isCorrect).toBe(false);
+    expect(result.userProgress.id).toBe("listening:v3");
+  });
+
   it("resets streak on an incorrect answer for an existing review item", async () => {
     const progressRepo = new FakeProgressRepo(
       {

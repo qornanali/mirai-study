@@ -229,6 +229,41 @@ describe("buildDailySession", () => {
     ]);
   });
 
+  it("adds listening items when reading and writing already exist", async () => {
+    const plan = await buildDailySession(
+      {
+        dataRepo: new FakeDataRepo([
+          {
+            id: "v1",
+            level: "N5",
+            japanese: "猫",
+            reading: "ねこ",
+            english: "cat",
+            partOfSpeech: "noun",
+            tags: ["animal"],
+          },
+        ]),
+        progressRepo: new FakeProgressRepo(
+          [],
+          new Set(["reading:v1", "writing:v1"]),
+        ),
+        settingsRepo: new FakeSettingsRepo({
+          theme: "system",
+          dailyReviewCap: 2,
+        }),
+      },
+      { nowIso: "2026-04-07T10:00:00.000Z" },
+    );
+
+    expect(plan.items).toEqual([
+      {
+        itemId: "v1",
+        module: "listening",
+        type: "new",
+      },
+    ]);
+  });
+
   it("returns only due reviews when the cap is already full", async () => {
     const dueReviews: ReviewState[] = [
       {

@@ -125,6 +125,23 @@ async function getNewItems(
       if (newItems.length === limit || scannedItems >= MAX_SCAN_ITEMS) {
         break;
       }
+
+      const listeningReviewState = await deps.progressRepo.getReviewState(
+        vocab.id,
+        "listening",
+      );
+
+      if (!listeningReviewState) {
+        newItems.push({
+          itemId: vocab.id,
+          module: "listening",
+          type: "new",
+        });
+      }
+
+      if (newItems.length === limit || scannedItems >= MAX_SCAN_ITEMS) {
+        break;
+      }
     }
   }
 

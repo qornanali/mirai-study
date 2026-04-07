@@ -3,6 +3,7 @@ import type { IJapaneseDataRepo, IProgressRepo } from "../../data/contracts";
 import { createProgressId } from "../../types";
 import type { ProgressRecord, ReviewState, UserProgress } from "../../types";
 import type { SessionQueueItem } from "./buildDailySession";
+import { gradeListeningAnswer } from "./gradeListeningAnswer";
 import { gradeReadingAnswer } from "./gradeReadingAnswer";
 import { gradeWritingAnswer } from "./gradeWritingAnswer";
 
@@ -57,7 +58,11 @@ export async function submitSessionAnswer(
   deps: SubmitSessionAnswerDeps,
   input: SubmitSessionAnswerInput,
 ): Promise<SessionAnswerResult> {
-  if (input.item.module !== "reading" && input.item.module !== "writing") {
+  if (
+    input.item.module !== "reading" &&
+    input.item.module !== "writing" &&
+    input.item.module !== "listening"
+  ) {
     throw new Error(`Unsupported session module ${input.item.module}.`);
   }
 
@@ -71,10 +76,23 @@ export async function submitSessionAnswer(
     input.item.module === "writing"
       ? vocab.japanese
       : (vocab.reading ?? vocab.japanese);
-  const result =
-    input.item.module === "writing"
-      ? gradeWritingAnswer(vocab.japanese, input.userAnswer, vocab.reading)
-      : gradeReadingAnswer(expectedAnswer, input.userAnswer);
+  let result = gradeReadingAnswer(expectedAnswer, input.userAnswer);
+
+  if (input.item.module === "writing") {
+    result = gradeWritingAnswer(
+      vocab.japanese,
+      input.userAnswer,
+      vocab.reading,
+    );
+  }
+
+  if (input.item.module === "listening") {
+    result = gradeListeningAnswer({
+      expected: vocab.reading ?? vocab.japanese,
+      actual: input.userAnswer,
+      promptType: "word",
+    });
+  }
   const quality = result.isCorrect ? 4 : 1;
   const currentReviewState =
     (await deps.progressRepo.getReviewState(

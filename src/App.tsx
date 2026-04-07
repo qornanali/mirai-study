@@ -68,6 +68,7 @@ function App() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const isWritingPrompt = activeItem?.module === "writing";
+  const isListeningPrompt = activeItem?.module === "listening";
 
   useEffect(() => {
     let cancelled = false;
@@ -402,7 +403,9 @@ function App() {
                       <p className="section-label">
                         {isWritingPrompt
                           ? "Write the Japanese answer"
-                          : "Type the kana reading"}
+                          : isListeningPrompt
+                            ? "Transcribe the dictation"
+                            : "Type the kana reading"}
                       </p>
                       {isWritingPrompt ? (
                         <>
@@ -411,6 +414,14 @@ function App() {
                           </div>
                           <p className="practice-hint">
                             Enter Japanese script or normalized romaji.
+                          </p>
+                        </>
+                      ) : isListeningPrompt ? (
+                        <>
+                          <div className="practice-word">Audio prompt</div>
+                          <p className="practice-hint">
+                            Temporary mode: type the pronunciation from memory
+                            while TTS integration is in progress.
                           </p>
                         </>
                       ) : (
@@ -439,7 +450,9 @@ function App() {
                           placeholder={
                             isWritingPrompt
                               ? "日本語または romaji"
-                              : "かなで入力"
+                              : isListeningPrompt
+                                ? "ききとったかな"
+                                : "かなで入力"
                           }
                           autoComplete="off"
                           disabled={submission !== null}
