@@ -14,11 +14,19 @@ import type {
 import { submitSessionAnswer } from "./submitSessionAnswer";
 
 class FakeDataRepo implements IJapaneseDataRepo {
-  constructor(private readonly vocab: VocabItem | null) {}
+  constructor(
+    private readonly vocab: VocabItem | null,
+    private readonly kanji: KanjiItem | null = null,
+  ) {}
 
   async getVocabById(id: string): Promise<VocabItem | null> {
     void id;
     return this.vocab;
+  }
+
+  async getKanjiById(id: string): Promise<KanjiItem | null> {
+    void id;
+    return this.kanji;
   }
 
   async getSentenceById(id: string): Promise<SentenceItem | null> {
@@ -324,5 +332,107 @@ describe("submitSessionAnswer", () => {
     expect(result.userProgress.correctAttempts).toBe(4);
     expect(result.userProgress.streak).toBe(0);
     expect(result.reviewState.leitner?.box).toBe(1);
+  });
+
+  it("grades correct kanji onyomi answers", async () => {
+    const progressRepo = new FakeProgressRepo(null, null);
+
+    const result = await submitSessionAnswer(
+      {
+        dataRepo: new FakeDataRepo(null, {
+          id: "k1",
+          level: "N5",
+          character: "日",
+          meaning: "day; sun",
+          onyomi: ["ニチ", "ジツ"],
+          kunyomi: ["ひ"],
+          strokeSvgPaths: ["M8 8 L32 8", "M20 8 L20 32"],
+          radicals: ["日"],
+        }),
+        progressRepo,
+      },
+      {
+        item: {
+          itemId: "k1",
+          module: "kanji",
+          type: "new",
+        },
+        nowIso: "2026-04-07T13:00:00.000Z",
+        userAnswer: "ニチ",
+      },
+    );
+
+    expect(result.attempt.result.isCorrect).toBe(true);
+    expect(result.attempt.expectedAnswer).toBe("ニチ、ジツ");
+    expect(result.userProgress.module).toBe("kanji");
+    expect(result.userProgress.id).toBe("kanji:k1");
+    expect(result.userProgress.totalAttempts).toBe(1);
+    expect(result.userProgress.correctAttempts).toBe(1);
+  });
+
+  it("accepts kanji onyomi in hiragana form", async () => {
+    const progressRepo = new FakeProgressRepo(null, null);
+
+    const result = await submitSessionAnswer(
+      {
+        dataRepo: new FakeDataRepo(null, {
+          id: "k2",
+          level: "N5",
+          character: "人",
+          meaning: "person",
+          onyomi: ["ジン", "ニン"],
+          kunyomi: ["ひと"],
+          strokeSvgPaths: ["M20 8 L20 32", "M8 20 L32 20"],
+          radicals: ["人"],
+        }),
+        progressRepo,
+      },
+      {
+        item: {
+          itemId: "k2",
+          module: "kanji",
+          type: "new",
+        },
+        nowIso: "2026-04-07T13:15:00.000Z",
+        userAnswer: "じん",
+      },
+    );
+
+    expect(result.attempt.result.isCorrect).toBe(true);
+    expect(result.userProgress.correctAttempts).toBe(1);
+  });
+
+  it("rejects incorrect kanji onyomi answers", async () => {
+    const progressRepo = new FakeProgressRepo(null, null);
+
+    const result = await submitSessionAnswer(
+      {
+        dataRepo: new FakeDataRepo(null, {
+          id: "k3",
+          level: "N5",
+          character: "火",
+          meaning: "fire",
+          onyomi: ["カ"],
+          kunyomi: ["ひ"],
+          strokeSvgPaths: ["M20 8 L20 32"],
+          radicals: ["火"],
+        }),
+        progressRepo,
+      },
+      {
+        item: {
+          itemId: "k3",
+          module: "kanji",
+          type: "new",
+        },
+        nowIso: "2026-04-07T13:30:00.000Z",
+        userAnswer: "ひ",
+      },
+    );
+
+    expect(result.attempt.result.isCorrect).toBe(false);
+    expect(result.attempt.expectedAnswer).toBe("カ");
+    expect(result.userProgress.correctAttempts).toBe(0);
+    expect(result.userProgress.streak).toBe(0);
   });
 });

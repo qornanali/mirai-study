@@ -297,6 +297,76 @@
   padding: 1rem;
 }
 
+.kanji-display {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr 1fr;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  border: 1px solid #fed7aa;
+}
+
+.kanji-character {
+  color: #7c2d12;
+  font-size: 5rem;
+  font-weight: 900;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kanji-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  justify-content: center;
+}
+
+.kanji-meaning,
+.kanji-strokes {
+  margin: 0;
+  color: #7c2d12;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.kanji-readings {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.3rem 0.8rem;
+  align-items: baseline;
+}
+
+.readings-label {
+  color: #9a3412;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin: 0;
+  letter-spacing: 0.05em;
+}
+
+.readings-text {
+  color: #7c2d12;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.kanji-stroke-viz {
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+  margin: 0 auto;
+  color: #7c2d12;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  border: 1px solid #fed7aa;
+}
+
 @media (max-width: 640px) {
   .app-shell {
     padding: 1.5rem 1rem 2rem;

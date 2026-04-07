@@ -16,6 +16,11 @@ export class DexieJapaneseDataRepo implements IJapaneseDataRepo {
     return row ? vocabItemSchema.parse(row) : null;
   }
 
+  async getKanjiById(id: string): Promise<KanjiItem | null> {
+    const row = await this.database.kanjiItems.get(id);
+    return row ? kanjiItemSchema.parse(row) : null;
+  }
+
   async getSentenceById(id: string): Promise<SentenceItem | null> {
     const row = await this.database.sentenceItems.get(id);
     return row ? sentenceItemSchema.parse(row) : null;

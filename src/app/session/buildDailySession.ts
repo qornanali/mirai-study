@@ -35,6 +35,7 @@ export interface BuildDailySessionInput {
 const DEFAULT_LEVEL: JLPTLevel = "N5";
 const PAGE_SIZE = 50;
 const MAX_SCAN_ITEMS = 300;
+const ENABLE_KANJI = false;
 
 export async function buildDailySession(
   deps: BuildDailySessionDeps,
@@ -165,6 +166,25 @@ async function getNewItems(
 
       if (newItems.length === limit || scannedItems >= MAX_SCAN_ITEMS) {
         break;
+      }
+    }
+  }
+
+  if (ENABLE_KANJI) {
+    const kanjiItems = await deps.dataRepo.getKanjiByLevel(level, PAGE_SIZE, 0);
+
+    for (const kanji of kanjiItems) {
+      const kanjiReviewState = await deps.progressRepo.getReviewState(
+        kanji.id,
+        "kanji",
+      );
+
+      if (!kanjiReviewState) {
+        newItems.push({
+          itemId: kanji.id,
+          module: "kanji",
+          type: "new",
+        });
       }
     }
   }
