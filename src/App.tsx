@@ -69,6 +69,11 @@ function App() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [voicePreference, setVoicePreference] = useState<string | undefined>();
   const [audioError, setAudioError] = useState<string | null>(null);
+  const [availableVoices, setAvailableVoices] = useState<
+    SpeechSynthesisVoice[]
+  >([]);
+  const [isSavingVoicePreference, setIsSavingVoicePreference] = useState(false);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
 
   const isWritingPrompt = activeItem?.module === "writing";
   const isListeningPrompt = activeItem?.module === "listening";
@@ -151,6 +156,24 @@ function App() {
 
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      return;
+    }
+
+    const synthesis = window.speechSynthesis;
+    const updateVoices = () => {
+      setAvailableVoices(synthesis.getVoices());
+    };
+
+    updateVoices();
+    synthesis.addEventListener("voiceschanged", updateVoices);
+
+    return () => {
+      synthesis.removeEventListener("voiceschanged", updateVoices);
     };
   }, []);
 
@@ -265,6 +288,27 @@ function App() {
     setAnswer("");
   }
 
+  async function handleVoicePreferenceChange(nextPreference: string) {
+    setIsSavingVoicePreference(true);
+    setSettingsError(null);
+
+    try {
+      const updated = await settingsRepo.updateSettings({
+        voicePreference: nextPreference.length > 0 ? nextPreference : undefined,
+      });
+
+      setVoicePreference(updated.voicePreference);
+    } catch (error) {
+      setSettingsError(
+        error instanceof Error
+          ? error.message
+          : "Failed to update voice preference.",
+      );
+    } finally {
+      setIsSavingVoicePreference(false);
+    }
+  }
+
   async function handleNextItem() {
     if (!sessionPlan) {
       return;
@@ -358,6 +402,44 @@ function App() {
                 <strong>{bootstrapResult.summary.sentences}</strong>
               </article>
             </div>
+
+            <section className="settings-panel">
+              <p className="section-label">Listening voice</p>
+              <label
+                className="settings-label"
+                htmlFor="voice-preference-select"
+              >
+                Voice preference
+              </label>
+              <select
+                id="voice-preference-select"
+                className="settings-select"
+                value={voicePreference ?? ""}
+                disabled={
+                  availableVoices.length === 0 || isSavingVoicePreference
+                }
+                onChange={(event) => {
+                  void handleVoicePreferenceChange(event.target.value);
+                }}
+              >
+                <option value="">Automatic Japanese fallback</option>
+                {availableVoices.map((voice) => (
+                  <option key={voice.voiceURI} value={voice.voiceURI}>
+                    {voice.name} ({voice.lang})
+                  </option>
+                ))}
+              </select>
+              {availableVoices.length === 0 && (
+                <p className="practice-hint">
+                  No browser voices are currently available.
+                </p>
+              )}
+              {settingsError && (
+                <p className="status-message status-message--error">
+                  {settingsError}
+                </p>
+              )}
+            </section>
 
             {sessionPlan && (
               <section className="queue-panel">

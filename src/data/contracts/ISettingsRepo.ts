@@ -1,6 +1,6 @@
 export interface UserSettings {
   theme: "dark" | "light" | "system";
-  voicePreference?: string;
+  voicePreference?: string | undefined;
   dailyReviewCap: number;
 }
 

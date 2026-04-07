@@ -145,6 +145,9 @@ describe("Dexie repositories", () => {
       dailyReviewCap: 50,
       voicePreference: "ja-JP-default",
     });
+    const clearedVoicePreference = await settingsRepo.updateSettings({
+      voicePreference: undefined,
+    });
 
     expect(defaults).toEqual({
       theme: "system",
@@ -155,6 +158,11 @@ describe("Dexie repositories", () => {
       theme: "dark",
       dailyReviewCap: 50,
       voicePreference: "ja-JP-default",
+    });
+
+    expect(clearedVoicePreference).toEqual({
+      theme: "dark",
+      dailyReviewCap: 50,
     });
   });
 });

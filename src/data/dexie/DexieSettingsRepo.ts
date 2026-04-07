@@ -39,7 +39,13 @@ export class DexieSettingsRepo implements ISettingsRepo {
       dailyReviewCap: settings.dailyReviewCap ?? current.dailyReviewCap,
     };
 
-    const voicePreference = settings.voicePreference ?? current.voicePreference;
+    const hasVoicePreferenceUpdate = Object.prototype.hasOwnProperty.call(
+      settings,
+      "voicePreference",
+    );
+    const voicePreference = hasVoicePreferenceUpdate
+      ? settings.voicePreference
+      : current.voicePreference;
 
     if (voicePreference) {
       merged.voicePreference = voicePreference;

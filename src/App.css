@@ -118,6 +118,30 @@
   font-size: 2rem;
 }
 
+.settings-panel {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 18px;
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+  padding: 1rem;
+}
+
+.settings-label {
+  color: #7c2d12;
+  font-weight: 600;
+}
+
+.settings-select {
+  background: #ffffff;
+  border: 1px solid #fdba74;
+  border-radius: 12px;
+  color: #7c2d12;
+  font: inherit;
+  padding: 0.7rem 0.85rem;
+}
+
 .session-panel {
   border-top: 1px solid #fed7aa;
   margin-top: 1.5rem;
