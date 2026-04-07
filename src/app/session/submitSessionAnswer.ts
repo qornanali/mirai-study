@@ -77,6 +77,7 @@ export async function submitSessionAnswer(
       ? vocab.japanese
       : (vocab.reading ?? vocab.japanese);
   let result = gradeReadingAnswer(expectedAnswer, input.userAnswer);
+  let resolvedExpectedAnswer = expectedAnswer;
 
   if (input.item.module === "writing") {
     result = gradeWritingAnswer(
@@ -87,11 +88,27 @@ export async function submitSessionAnswer(
   }
 
   if (input.item.module === "listening") {
-    result = gradeListeningAnswer({
-      expected: vocab.reading ?? vocab.japanese,
-      actual: input.userAnswer,
-      promptType: "word",
-    });
+    if (input.item.promptType === "sentence") {
+      const sentence = await deps.dataRepo.getSentenceById(input.item.itemId);
+
+      if (!sentence) {
+        throw new Error(`Missing sentence item ${input.item.itemId}.`);
+      }
+
+      resolvedExpectedAnswer = sentence.reading ?? sentence.japanese;
+      result = gradeListeningAnswer({
+        expected: resolvedExpectedAnswer,
+        actual: input.userAnswer,
+        promptType: "sentence",
+      });
+    } else {
+      resolvedExpectedAnswer = vocab.reading ?? vocab.japanese;
+      result = gradeListeningAnswer({
+        expected: resolvedExpectedAnswer,
+        actual: input.userAnswer,
+        promptType: "word",
+      });
+    }
   }
   const quality = result.isCorrect ? 4 : 1;
   const currentReviewState =
@@ -115,7 +132,7 @@ export async function submitSessionAnswer(
       id: crypto.randomUUID(),
       itemId: input.item.itemId,
       module: input.item.module,
-      expectedAnswer,
+      expectedAnswer: resolvedExpectedAnswer,
       userAnswer: input.userAnswer,
       createdAt: input.nowIso,
       result,

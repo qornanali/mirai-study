@@ -15,7 +15,7 @@ import {
   DexieProgressRepo,
   DexieSettingsRepo,
 } from "./data/dexie";
-import type { VocabItem } from "./types";
+import type { SentenceItem, VocabItem } from "./types";
 import "./App.css";
 
 type AppStatus = "loading" | "ready" | "error";
@@ -57,6 +57,8 @@ function App() {
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>("idle");
   const [activeItem, setActiveItem] = useState<SessionQueueItem | null>(null);
   const [activePrompt, setActivePrompt] = useState<VocabItem | null>(null);
+  const [activeSentencePrompt, setActiveSentencePrompt] =
+    useState<SentenceItem | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [answer, setAnswer] = useState("");
   const [submission, setSubmission] = useState<SessionAnswerResult | null>(
@@ -89,6 +91,41 @@ function App() {
       const utterance = new SpeechSynthesisUtterance(
         prompt.reading ?? prompt.japanese,
       );
+      const voices = synthesis.getVoices();
+      const selectedVoice = selectVoiceForJapanesePlayback(
+        voices,
+        voicePreference,
+      );
+
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+        utterance.lang = selectedVoice.lang;
+      } else {
+        utterance.lang = "ja-JP";
+      }
+
+      utterance.onerror = () => {
+        setAudioError("Unable to play audio prompt.");
+      };
+      utterance.onend = () => {
+        setAudioError(null);
+      };
+
+      synthesis.cancel();
+      synthesis.speak(utterance);
+    },
+    [voicePreference],
+  );
+
+  const playListeningText = useCallback(
+    (text: string) => {
+      if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+        setAudioError("Speech synthesis is not available in this browser.");
+        return;
+      }
+
+      const synthesis = window.speechSynthesis;
+      const utterance = new SpeechSynthesisUtterance(text);
       const voices = synthesis.getVoices();
       const selectedVoice = selectVoiceForJapanesePlayback(
         voices,
@@ -216,13 +253,31 @@ function App() {
 
         setActiveItem(item);
         setActivePrompt(prompt);
+        setActiveSentencePrompt(null);
         setSessionError(null);
         setAudioError(null);
         setAnswer("");
         setSubmission(null);
 
         if (item.module === "listening") {
-          playListeningAudio(prompt);
+          if (item.promptType === "sentence") {
+            const sentence = await dataRepo.getSentenceById(item.itemId);
+
+            if (!sentence) {
+              throw new Error(
+                `Missing sentence item ${item.itemId} for listening prompt.`,
+              );
+            }
+
+            if (cancelled) {
+              return;
+            }
+
+            setActiveSentencePrompt(sentence);
+            playListeningText(sentence.reading ?? sentence.japanese);
+          } else {
+            playListeningAudio(prompt);
+          }
         }
       } catch (error) {
         if (cancelled) {
@@ -242,7 +297,14 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [activeIndex, playListeningAudio, sessionPlan, sessionStatus, status]);
+  }, [
+    activeIndex,
+    playListeningAudio,
+    playListeningText,
+    sessionPlan,
+    sessionStatus,
+    status,
+  ]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -320,6 +382,7 @@ function App() {
       setSessionStatus("complete");
       setActiveItem(null);
       setActivePrompt(null);
+      setActiveSentencePrompt(null);
       setIsRefreshingPlan(true);
 
       try {
@@ -552,12 +615,31 @@ function App() {
                           <p className="practice-hint">
                             Listen and type what you hear.
                           </p>
+                          {activeItem.promptType === "sentence" &&
+                            activeSentencePrompt && (
+                              <p className="practice-hint">
+                                Sentence hint: {activeSentencePrompt.english}
+                              </p>
+                            )}
                           <button
                             className="secondary-button"
                             type="button"
-                            onClick={() =>
-                              activePrompt && playListeningAudio(activePrompt)
-                            }
+                            onClick={() => {
+                              if (
+                                activeItem.promptType === "sentence" &&
+                                activeSentencePrompt
+                              ) {
+                                playListeningText(
+                                  activeSentencePrompt.reading ??
+                                    activeSentencePrompt.japanese,
+                                );
+                                return;
+                              }
+
+                              if (activePrompt) {
+                                playListeningAudio(activePrompt);
+                              }
+                            }}
                           >
                             Replay audio
                           </button>

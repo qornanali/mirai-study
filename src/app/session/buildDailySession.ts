@@ -9,6 +9,7 @@ export interface SessionQueueItem {
   itemId: string;
   module: StudyModule;
   type: "review" | "new";
+  promptType?: "word" | "sentence";
   dueAt?: string | undefined;
 }
 
@@ -136,7 +137,30 @@ async function getNewItems(
           itemId: vocab.id,
           module: "listening",
           type: "new",
+          promptType: "word",
         });
+      }
+
+      if (newItems.length === limit || scannedItems >= MAX_SCAN_ITEMS) {
+        break;
+      }
+
+      const sentence = (
+        await deps.dataRepo.searchSentencesByVocab(vocab.id, 1)
+      )[0];
+
+      if (sentence) {
+        const sentenceListeningReviewState =
+          await deps.progressRepo.getReviewState(sentence.id, "listening");
+
+        if (!sentenceListeningReviewState) {
+          newItems.push({
+            itemId: sentence.id,
+            module: "listening",
+            type: "new",
+            promptType: "sentence",
+          });
+        }
       }
 
       if (newItems.length === limit || scannedItems >= MAX_SCAN_ITEMS) {

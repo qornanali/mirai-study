@@ -21,6 +21,21 @@ class FakeDataRepo implements IJapaneseDataRepo {
     return this.vocab;
   }
 
+  async getSentenceById(id: string): Promise<SentenceItem | null> {
+    if (id === "s1") {
+      return {
+        id: "s1",
+        level: "N5",
+        japanese: "わたしはがくせいです",
+        reading: "わたしはがくせいです",
+        english: "I am a student.",
+        vocabIds: ["v3"],
+      };
+    }
+
+    return null;
+  }
+
   async getVocabBatch(
     level: JLPTLevel,
     limit: number,
@@ -219,6 +234,40 @@ describe("submitSessionAnswer", () => {
     expect(result.attempt.result.score).toBe(0.75);
     expect(result.attempt.result.isCorrect).toBe(false);
     expect(result.userProgress.id).toBe("listening:v3");
+  });
+
+  it("uses sentence threshold for listening sentence prompts", async () => {
+    const progressRepo = new FakeProgressRepo(null, null);
+
+    const result = await submitSessionAnswer(
+      {
+        dataRepo: new FakeDataRepo({
+          id: "v3",
+          level: "N5",
+          japanese: "学生",
+          reading: "がくせい",
+          english: "student",
+          partOfSpeech: "noun",
+          tags: ["school"],
+        }),
+        progressRepo,
+      },
+      {
+        item: {
+          itemId: "s1",
+          module: "listening",
+          type: "new",
+          promptType: "sentence",
+        },
+        nowIso: "2026-04-07T12:45:00.000Z",
+        userAnswer: "わたしはがくせです",
+      },
+    );
+
+    expect(result.attempt.expectedAnswer).toBe("わたしはがくせいです");
+    expect(result.attempt.result.score).toBeGreaterThanOrEqual(0.8);
+    expect(result.attempt.result.isCorrect).toBe(true);
+    expect(result.userProgress.id).toBe("listening:s1");
   });
 
   it("resets streak on an incorrect answer for an existing review item", async () => {

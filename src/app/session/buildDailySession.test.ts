@@ -25,6 +25,11 @@ class FakeDataRepo implements IJapaneseDataRepo {
     return this.vocabItems.find((item) => item.id === id) ?? null;
   }
 
+  async getSentenceById(id: string): Promise<SentenceItem | null> {
+    void id;
+    return null;
+  }
+
   async getVocabBatch(
     level: JLPTLevel,
     limit: number,
@@ -49,8 +54,18 @@ class FakeDataRepo implements IJapaneseDataRepo {
     vocabId: string,
     limit: number,
   ): Promise<SentenceItem[]> {
-    void vocabId;
-    void limit;
+    if (vocabId === "v1") {
+      return [
+        {
+          id: "s-v1",
+          level: "N5" as const,
+          japanese: "猫です。",
+          english: "It is a cat.",
+          vocabIds: ["v1"],
+        },
+      ].slice(0, limit);
+    }
+
     return [];
   }
 
@@ -260,6 +275,13 @@ describe("buildDailySession", () => {
         itemId: "v1",
         module: "listening",
         type: "new",
+        promptType: "word",
+      },
+      {
+        itemId: "s-v1",
+        module: "listening",
+        type: "new",
+        promptType: "sentence",
       },
     ]);
   });
