@@ -7,6 +7,7 @@ import type {
   ProgressSnapshot,
   ReviewState,
   SentenceItem,
+  StudyModule,
   UserProgress,
   VocabItem,
 } from "../../types";
@@ -71,19 +72,29 @@ class FakeProgressRepo implements IProgressRepo {
 
   async updateReviewState(
     itemId: string,
+    module: StudyModule,
     reviewState: ReviewState,
   ): Promise<void> {
     void itemId;
+    void module;
     void reviewState;
   }
 
-  async getReviewState(itemId: string): Promise<ReviewState | null> {
+  async getReviewState(
+    itemId: string,
+    module: StudyModule,
+  ): Promise<ReviewState | null> {
     void itemId;
+    void module;
     return this.reviewState;
   }
 
-  async getUserProgress(itemId: string): Promise<UserProgress | null> {
+  async getUserProgress(
+    itemId: string,
+    module: StudyModule,
+  ): Promise<UserProgress | null> {
     void itemId;
+    void module;
     return this.userProgress;
   }
 
@@ -145,9 +156,43 @@ describe("submitSessionAnswer", () => {
     expect(progressRepo.recorded?.attempt.itemId).toBe("v1");
   });
 
+  it("accepts normalized romaji answers for writing items", async () => {
+    const progressRepo = new FakeProgressRepo(null, null);
+
+    const result = await submitSessionAnswer(
+      {
+        dataRepo: new FakeDataRepo({
+          id: "v2",
+          level: "N5",
+          japanese: "食べる",
+          reading: "たべる",
+          english: "eat",
+          partOfSpeech: "verb",
+          tags: ["food"],
+        }),
+        progressRepo,
+      },
+      {
+        item: {
+          itemId: "v2",
+          module: "writing",
+          type: "new",
+        },
+        nowIso: "2026-04-07T12:30:00.000Z",
+        userAnswer: "taberu",
+      },
+    );
+
+    expect(result.attempt.result.isCorrect).toBe(true);
+    expect(result.attempt.expectedAnswer).toBe("食べる");
+    expect(result.userProgress.module).toBe("writing");
+    expect(result.userProgress.id).toBe("writing:v2");
+  });
+
   it("resets streak on an incorrect answer for an existing review item", async () => {
     const progressRepo = new FakeProgressRepo(
       {
+        id: "reading:v1",
         itemId: "v1",
         module: "reading",
         algorithm: "leitner",
@@ -158,6 +203,7 @@ describe("submitSessionAnswer", () => {
         },
       },
       {
+        id: "reading:v1",
         itemId: "v1",
         module: "reading",
         streak: 4,

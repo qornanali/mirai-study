@@ -4,6 +4,7 @@ import { ReviewState, StudyAttempt, UserProgress } from ".";
 describe("value objects", () => {
   it("creates a valid review state value object", () => {
     const reviewState = ReviewState.create({
+      id: "reading:v1",
       itemId: "v1",
       module: "reading",
       algorithm: "leitner",
@@ -39,6 +40,7 @@ describe("value objects", () => {
 
   it("creates a valid user progress value object", () => {
     const progress = UserProgress.create({
+      id: "writing:v1",
       itemId: "v1",
       module: "writing",
       streak: 2,

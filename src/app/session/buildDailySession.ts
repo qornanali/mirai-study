@@ -92,12 +92,32 @@ async function getNewItems(
 
     for (const vocab of batch) {
       scannedItems += 1;
-      const reviewState = await deps.progressRepo.getReviewState(vocab.id);
+      const readingReviewState = await deps.progressRepo.getReviewState(
+        vocab.id,
+        "reading",
+      );
 
-      if (!reviewState) {
+      if (!readingReviewState) {
         newItems.push({
           itemId: vocab.id,
           module: "reading",
+          type: "new",
+        });
+      }
+
+      if (newItems.length === limit || scannedItems >= MAX_SCAN_ITEMS) {
+        break;
+      }
+
+      const writingReviewState = await deps.progressRepo.getReviewState(
+        vocab.id,
+        "writing",
+      );
+
+      if (!writingReviewState) {
+        newItems.push({
+          itemId: vocab.id,
+          module: "writing",
           type: "new",
         });
       }

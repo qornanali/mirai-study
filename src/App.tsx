@@ -67,6 +67,8 @@ function App() {
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const isWritingPrompt = activeItem?.module === "writing";
+
   useEffect(() => {
     let cancelled = false;
 
@@ -397,13 +399,30 @@ function App() {
                         </span>
                       </div>
 
-                      <p className="section-label">Type the kana reading</p>
-                      <div className="practice-word">
-                        {activePrompt.japanese}
-                      </div>
-                      <p className="practice-hint">
-                        Meaning: {activePrompt.english}
+                      <p className="section-label">
+                        {isWritingPrompt
+                          ? "Write the Japanese answer"
+                          : "Type the kana reading"}
                       </p>
+                      {isWritingPrompt ? (
+                        <>
+                          <div className="practice-word">
+                            {activePrompt.english}
+                          </div>
+                          <p className="practice-hint">
+                            Enter Japanese script or normalized romaji.
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <div className="practice-word">
+                            {activePrompt.japanese}
+                          </div>
+                          <p className="practice-hint">
+                            Meaning: {activePrompt.english}
+                          </p>
+                        </>
+                      )}
 
                       <form className="practice-form" onSubmit={handleSubmit}>
                         <label
@@ -417,7 +436,11 @@ function App() {
                           className="practice-input"
                           value={answer}
                           onChange={(event) => setAnswer(event.target.value)}
-                          placeholder="かなで入力"
+                          placeholder={
+                            isWritingPrompt
+                              ? "日本語または romaji"
+                              : "かなで入力"
+                          }
                           autoComplete="off"
                           disabled={submission !== null}
                         />
@@ -452,8 +475,9 @@ function App() {
                               : "Not quite"}
                           </p>
                           <p className="practice-hint">
-                            Expected reading:{" "}
-                            {submission.attempt.expectedAnswer}
+                            {activeItem.module === "writing"
+                              ? `Expected answer: ${submission.attempt.expectedAnswer}`
+                              : `Expected reading: ${submission.attempt.expectedAnswer}`}
                           </p>
                           <p className="practice-hint">
                             Next review:{" "}

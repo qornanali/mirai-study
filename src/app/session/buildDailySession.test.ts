@@ -12,6 +12,7 @@ import type {
   ProgressSnapshot,
   ReviewState,
   SentenceItem,
+  StudyModule,
   UserProgress,
   VocabItem,
 } from "../../types";
@@ -71,20 +72,28 @@ class FakeProgressRepo implements IProgressRepo {
 
   async updateReviewState(
     itemId: string,
+    module: StudyModule,
     reviewState: ReviewState,
   ): Promise<void> {
     void itemId;
+    void module;
     void reviewState;
   }
 
-  async getReviewState(itemId: string): Promise<ReviewState | null> {
-    if (!this.knownReviewStateIds.has(itemId)) {
+  async getReviewState(
+    itemId: string,
+    module: StudyModule,
+  ): Promise<ReviewState | null> {
+    const progressId = `${module}:${itemId}`;
+
+    if (!this.knownReviewStateIds.has(progressId)) {
       return null;
     }
 
     return {
+      id: progressId,
       itemId,
-      module: "reading",
+      module,
       algorithm: "leitner",
       dueAt: "2026-04-07T00:00:00.000Z",
       leitner: {
@@ -94,8 +103,12 @@ class FakeProgressRepo implements IProgressRepo {
     };
   }
 
-  async getUserProgress(itemId: string): Promise<UserProgress | null> {
+  async getUserProgress(
+    itemId: string,
+    module: StudyModule,
+  ): Promise<UserProgress | null> {
     void itemId;
+    void module;
     return null;
   }
 
@@ -139,6 +152,7 @@ describe("buildDailySession", () => {
   it("fills remaining cap with unseen N5 vocab after due reviews", async () => {
     const dueReviews: ReviewState[] = [
       {
+        id: "reading:due-1",
         itemId: "due-1",
         module: "reading",
         algorithm: "leitner",
@@ -183,7 +197,7 @@ describe("buildDailySession", () => {
     const plan = await buildDailySession(
       {
         dataRepo: new FakeDataRepo(vocab),
-        progressRepo: new FakeProgressRepo(dueReviews, new Set(["v2"])),
+        progressRepo: new FakeProgressRepo(dueReviews, new Set(["reading:v2"])),
         settingsRepo: new FakeSettingsRepo({
           theme: "system",
           dailyReviewCap: 3,
@@ -208,8 +222,8 @@ describe("buildDailySession", () => {
         type: "new",
       },
       {
-        itemId: "v3",
-        module: "reading",
+        itemId: "v1",
+        module: "writing",
         type: "new",
       },
     ]);
@@ -218,6 +232,7 @@ describe("buildDailySession", () => {
   it("returns only due reviews when the cap is already full", async () => {
     const dueReviews: ReviewState[] = [
       {
+        id: "reading:due-1",
         itemId: "due-1",
         module: "reading",
         algorithm: "leitner",
@@ -228,6 +243,7 @@ describe("buildDailySession", () => {
         },
       },
       {
+        id: "writing:due-2",
         itemId: "due-2",
         module: "writing",
         algorithm: "leitner",

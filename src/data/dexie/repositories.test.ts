@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import type { ProgressRecord } from "../../types";
+import { createProgressId, type ProgressRecord } from "../../types";
 import {
   createRenshuuDexieDatabase,
   DexieJapaneseDataRepo,
@@ -100,6 +100,7 @@ describe("Dexie repositories", () => {
         },
       },
       reviewState: {
+        id: createProgressId("v1", "reading"),
         itemId: "v1",
         module: "reading",
         algorithm: "leitner",
@@ -110,6 +111,7 @@ describe("Dexie repositories", () => {
         },
       },
       userProgress: {
+        id: createProgressId("v1", "reading"),
         itemId: "v1",
         module: "reading",
         streak: 1,
@@ -121,8 +123,8 @@ describe("Dexie repositories", () => {
 
     await progressRepo.recordAttempt(record);
 
-    const reviewState = await progressRepo.getReviewState("v1");
-    const userProgress = await progressRepo.getUserProgress("v1");
+    const reviewState = await progressRepo.getReviewState("v1", "reading");
+    const userProgress = await progressRepo.getUserProgress("v1", "reading");
     const due = await progressRepo.getDueReviews(
       "2026-04-08T00:00:00.000Z",
       10,

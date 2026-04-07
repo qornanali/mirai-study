@@ -1,3 +1,4 @@
+import type { StudyModule } from "../../types";
 import type {
   ProgressRecord,
   ProgressSnapshot,
@@ -7,9 +8,19 @@ import type {
 
 export interface IProgressRepo {
   recordAttempt(record: ProgressRecord): Promise<void>;
-  updateReviewState(itemId: string, reviewState: ReviewState): Promise<void>;
-  getReviewState(itemId: string): Promise<ReviewState | null>;
-  getUserProgress(itemId: string): Promise<UserProgress | null>;
+  updateReviewState(
+    itemId: string,
+    module: StudyModule,
+    reviewState: ReviewState,
+  ): Promise<void>;
+  getReviewState(
+    itemId: string,
+    module: StudyModule,
+  ): Promise<ReviewState | null>;
+  getUserProgress(
+    itemId: string,
+    module: StudyModule,
+  ): Promise<UserProgress | null>;
   getDueReviews(nowIso: string, limit: number): Promise<ReviewState[]>;
   getSnapshot(): Promise<ProgressSnapshot>;
 }

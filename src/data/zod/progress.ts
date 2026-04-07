@@ -13,6 +13,7 @@ const sm2StateSchema = z.object({
 });
 
 export const reviewStateSchema = z.object({
+  id: z.string().min(1),
   itemId: z.string().min(1),
   module: studyModuleSchema,
   algorithm: z.enum(["leitner", "sm2"]),
@@ -40,6 +41,7 @@ export const studyAttemptSchema = z.object({
 });
 
 export const userProgressSchema = z.object({
+  id: z.string().min(1),
   itemId: z.string().min(1),
   module: studyModuleSchema,
   streak: z.number().int().min(0),

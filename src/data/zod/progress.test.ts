@@ -4,6 +4,7 @@ import { progressRecordSchema, reviewStateSchema } from "./progress";
 describe("progress schemas", () => {
   it("validates a review state", () => {
     const result = reviewStateSchema.parse({
+      id: "reading:v1",
       itemId: "v1",
       module: "reading",
       algorithm: "leitner",
@@ -35,6 +36,7 @@ describe("progress schemas", () => {
           },
         },
         reviewState: {
+          id: "writing:v1",
           itemId: "v1",
           module: "writing",
           algorithm: "leitner",
@@ -45,6 +47,7 @@ describe("progress schemas", () => {
           },
         },
         userProgress: {
+          id: "writing:v1",
           itemId: "v1",
           module: "writing",
           streak: 1,

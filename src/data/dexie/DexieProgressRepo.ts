@@ -1,8 +1,10 @@
 import type { IProgressRepo } from "../contracts";
+import { createProgressId } from "../../types";
 import type {
   ProgressRecord,
   ProgressSnapshot,
   ReviewState,
+  StudyModule,
   UserProgress,
 } from "../../types";
 import {
@@ -12,6 +14,10 @@ import {
   userProgressSchema,
 } from "../zod";
 import type { RenshuuDexieDatabase } from "./db";
+
+function toProgressId(itemId: string, module: StudyModule): string {
+  return createProgressId(itemId, module);
+}
 
 export class DexieProgressRepo implements IProgressRepo {
   constructor(private readonly database: RenshuuDexieDatabase) {}
@@ -34,24 +40,40 @@ export class DexieProgressRepo implements IProgressRepo {
 
   async updateReviewState(
     itemId: string,
+    module: StudyModule,
     reviewState: ReviewState,
   ): Promise<void> {
     const parsed = reviewStateSchema.parse(reviewState);
+    const expectedId = toProgressId(itemId, module);
 
-    if (parsed.itemId !== itemId) {
-      throw new Error("Review state itemId does not match update target.");
+    if (parsed.itemId !== itemId || parsed.module !== module) {
+      throw new Error("Review state target does not match update request.");
+    }
+
+    if (parsed.id !== expectedId) {
+      throw new Error("Review state id does not match item and module.");
     }
 
     await this.database.reviewStates.put(parsed);
   }
 
-  async getReviewState(itemId: string): Promise<ReviewState | null> {
-    const row = await this.database.reviewStates.get(itemId);
+  async getReviewState(
+    itemId: string,
+    module: StudyModule,
+  ): Promise<ReviewState | null> {
+    const row = await this.database.reviewStates.get(
+      toProgressId(itemId, module),
+    );
     return row ? reviewStateSchema.parse(row) : null;
   }
 
-  async getUserProgress(itemId: string): Promise<UserProgress | null> {
-    const row = await this.database.userProgress.get(itemId);
+  async getUserProgress(
+    itemId: string,
+    module: StudyModule,
+  ): Promise<UserProgress | null> {
+    const row = await this.database.userProgress.get(
+      toProgressId(itemId, module),
+    );
     return row ? userProgressSchema.parse(row) : null;
   }
 

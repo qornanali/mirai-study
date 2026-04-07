@@ -7,6 +7,7 @@ describe("calculateNextReview", () => {
       nowIso: "2026-04-07T00:00:00.000Z",
       quality: 4,
       state: {
+        id: "reading:v1",
         itemId: "v1",
         module: "reading",
         algorithm: "leitner",
@@ -28,6 +29,7 @@ describe("calculateNextReview", () => {
       nowIso: "2026-04-07T00:00:00.000Z",
       quality: 1,
       state: {
+        id: "reading:v1",
         itemId: "v1",
         module: "reading",
         algorithm: "leitner",
@@ -49,6 +51,7 @@ describe("calculateNextReview", () => {
         nowIso: "2026-04-07T00:00:00.000Z",
         quality: 5,
         state: {
+          id: "reading:v1",
           itemId: "v1",
           module: "reading",
           algorithm: "leitner",
@@ -73,6 +76,7 @@ describe("calculateNextReview", () => {
       nowIso: "2026-04-07T00:00:00.000Z",
       quality: 4,
       state: {
+        id: "reading:v1",
         itemId: "v1",
         module: "reading",
         algorithm: "sm2",

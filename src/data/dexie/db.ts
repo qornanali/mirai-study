@@ -17,8 +17,8 @@ export class RenshuuDexieDatabase extends Dexie {
   vocabItems!: EntityTable<VocabItem, "id">;
   kanjiItems!: EntityTable<KanjiItem, "id">;
   sentenceItems!: EntityTable<SentenceItem, "id">;
-  reviewStates!: EntityTable<ReviewState, "itemId">;
-  userProgress!: EntityTable<UserProgress, "itemId">;
+  reviewStates!: EntityTable<ReviewState, "id">;
+  userProgress!: EntityTable<UserProgress, "id">;
   attempts!: EntityTable<StudyAttempt, "id">;
   settings!: EntityTable<StoredSettings, "id">;
 
@@ -29,8 +29,8 @@ export class RenshuuDexieDatabase extends Dexie {
       vocabItems: "id, level",
       kanjiItems: "id, level",
       sentenceItems: "id, level, *vocabIds",
-      reviewStates: "itemId, dueAt, module, algorithm",
-      userProgress: "itemId, module, updatedAt",
+      reviewStates: "id, itemId, dueAt, module, algorithm",
+      userProgress: "id, itemId, module, updatedAt",
       attempts: "id, itemId, module, createdAt",
       settings: "id",
     });

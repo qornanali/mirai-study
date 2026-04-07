@@ -1,8 +1,10 @@
 import { calculateNextReview } from "../../domain/srs";
 import type { IJapaneseDataRepo, IProgressRepo } from "../../data/contracts";
+import { createProgressId } from "../../types";
 import type { ProgressRecord, ReviewState, UserProgress } from "../../types";
 import type { SessionQueueItem } from "./buildDailySession";
 import { gradeReadingAnswer } from "./gradeReadingAnswer";
+import { gradeWritingAnswer } from "./gradeWritingAnswer";
 
 export interface SubmitSessionAnswerDeps {
   dataRepo: IJapaneseDataRepo;
@@ -24,6 +26,7 @@ function createInitialReviewState(
   nowIso: string,
 ): ReviewState {
   return {
+    id: createProgressId(item.itemId, item.module),
     itemId: item.itemId,
     module: item.module,
     algorithm: "leitner",
@@ -40,6 +43,7 @@ function createInitialProgress(
   nowIso: string,
 ): UserProgress {
   return {
+    id: createProgressId(item.itemId, item.module),
     itemId: item.itemId,
     module: item.module,
     streak: 0,
@@ -53,7 +57,7 @@ export async function submitSessionAnswer(
   deps: SubmitSessionAnswerDeps,
   input: SubmitSessionAnswerInput,
 ): Promise<SessionAnswerResult> {
-  if (input.item.module !== "reading") {
+  if (input.item.module !== "reading" && input.item.module !== "writing") {
     throw new Error(`Unsupported session module ${input.item.module}.`);
   }
 
@@ -63,15 +67,25 @@ export async function submitSessionAnswer(
     throw new Error(`Missing vocab item ${input.item.itemId}.`);
   }
 
-  const expectedAnswer = vocab.reading ?? vocab.japanese;
-  const result = gradeReadingAnswer(expectedAnswer, input.userAnswer);
+  const expectedAnswer =
+    input.item.module === "writing"
+      ? vocab.japanese
+      : (vocab.reading ?? vocab.japanese);
+  const result =
+    input.item.module === "writing"
+      ? gradeWritingAnswer(vocab.japanese, input.userAnswer, vocab.reading)
+      : gradeReadingAnswer(expectedAnswer, input.userAnswer);
   const quality = result.isCorrect ? 4 : 1;
   const currentReviewState =
-    (await deps.progressRepo.getReviewState(input.item.itemId)) ??
-    createInitialReviewState(input.item, input.nowIso);
+    (await deps.progressRepo.getReviewState(
+      input.item.itemId,
+      input.item.module,
+    )) ?? createInitialReviewState(input.item, input.nowIso);
   const currentProgress =
-    (await deps.progressRepo.getUserProgress(input.item.itemId)) ??
-    createInitialProgress(input.item, input.nowIso);
+    (await deps.progressRepo.getUserProgress(
+      input.item.itemId,
+      input.item.module,
+    )) ?? createInitialProgress(input.item, input.nowIso);
   const nextReview = calculateNextReview({
     nowIso: input.nowIso,
     quality,

@@ -1,3 +1,5 @@
+import type { StudyModule } from "./entities";
+
 export type SRSAlgorithm = "leitner" | "sm2";
 
 export interface LeitnerState {
@@ -12,8 +14,9 @@ export interface SM2State {
 }
 
 export interface ReviewState {
+  id: string;
   itemId: string;
-  module: "reading" | "writing" | "listening" | "kanji";
+  module: StudyModule;
   algorithm: SRSAlgorithm;
   dueAt: string;
   lastReviewedAt?: string | undefined;

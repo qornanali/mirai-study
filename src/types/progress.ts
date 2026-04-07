@@ -1,9 +1,15 @@
+import type { StudyModule } from "./entities";
 import type { StudyAttempt } from "./grading";
 import type { ReviewState } from "./srs";
 
+export function createProgressId(itemId: string, module: StudyModule): string {
+  return `${module}:${itemId}`;
+}
+
 export interface UserProgress {
+  id: string;
   itemId: string;
-  module: "reading" | "writing" | "listening" | "kanji";
+  module: StudyModule;
   streak: number;
   totalAttempts: number;
   correctAttempts: number;
