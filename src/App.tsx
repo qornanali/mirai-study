@@ -79,15 +79,7 @@ function App() {
   const [isRefreshingPlan, setIsRefreshingPlan] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [voicePreference, setVoicePreference] = useState<string | undefined>();
-  const [ttsRate, setTtsRate] = useState(1);
-  const [ttsPitch, setTtsPitch] = useState(1);
   const [audioError, setAudioError] = useState<string | null>(null);
-  const [availableVoices, setAvailableVoices] = useState<
-    SpeechSynthesisVoice[]
-  >([]);
-  const [isSavingVoicePreference, setIsSavingVoicePreference] = useState(false);
-  const [settingsError, setSettingsError] = useState<string | null>(null);
   const [installPromptEvent, setInstallPromptEvent] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
@@ -95,93 +87,76 @@ function App() {
 
   const isWritingPrompt = activeItem?.module === "writing";
   const isListeningPrompt = activeItem?.module === "listening";
-  const availableJapaneseVoices = availableVoices.filter((voice) =>
-    voice.lang.toLowerCase().startsWith("ja"),
-  );
 
-  const playListeningAudio = useCallback(
-    (prompt: VocabItem): boolean => {
-      if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-        setAudioError(
-          "Japanese text-to-speech is not available in this browser.",
-        );
-        return false;
-      }
-
-      const synthesis = window.speechSynthesis;
-      const utterance = new SpeechSynthesisUtterance(
-        prompt.reading ?? prompt.japanese,
+  const playListeningAudio = useCallback((prompt: VocabItem) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      setAudioError(
+        "Japanese text-to-speech is not available in this browser.",
       );
-      const voices = synthesis.getVoices();
-      const selectedVoice = selectVoiceForJapanesePlayback(
-        voices,
-        voicePreference,
+      return;
+    }
+
+    const synthesis = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance(
+      prompt.reading ?? prompt.japanese,
+    );
+    const voices = synthesis.getVoices();
+    const selectedVoice = selectVoiceForJapanesePlayback(voices);
+
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+      utterance.lang = selectedVoice.lang;
+    } else {
+      setAudioError("No Japanese voice is available on this device.");
+      return;
+    }
+    utterance.rate = 1;
+    utterance.pitch = 1;
+
+    utterance.onerror = () => {
+      setAudioError("Unable to play audio prompt.");
+    };
+    utterance.onend = () => {
+      setAudioError(null);
+    };
+
+    synthesis.cancel();
+    synthesis.speak(utterance);
+  }, []);
+
+  const playListeningText = useCallback((text: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      setAudioError(
+        "Japanese text-to-speech is not available in this browser.",
       );
+      return;
+    }
 
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-        utterance.lang = selectedVoice.lang;
-      } else {
-        setAudioError("No Japanese voice is available on this device.");
-        return false;
-      }
-      utterance.rate = ttsRate;
-      utterance.pitch = ttsPitch;
+    const synthesis = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voices = synthesis.getVoices();
+    const selectedVoice = selectVoiceForJapanesePlayback(voices);
 
-      utterance.onerror = () => {
-        setAudioError("Unable to play audio prompt.");
-      };
-      utterance.onend = () => {
-        setAudioError(null);
-      };
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+      utterance.lang = selectedVoice.lang;
+    } else {
+      setAudioError("No Japanese voice is available on this device.");
+      return;
+    }
+    utterance.rate = 1;
+    utterance.pitch = 1;
 
-      synthesis.cancel();
-      synthesis.speak(utterance);
-      return true;
-    },
-    [ttsPitch, ttsRate, voicePreference],
-  );
+    utterance.onerror = () => {
+      setAudioError("Unable to play audio prompt.");
+    };
+    utterance.onend = () => {
+      setAudioError(null);
+    };
 
-  const playListeningText = useCallback(
-    (text: string): boolean => {
-      if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-        setAudioError(
-          "Japanese text-to-speech is not available in this browser.",
-        );
-        return false;
-      }
-
-      const synthesis = window.speechSynthesis;
-      const utterance = new SpeechSynthesisUtterance(text);
-      const voices = synthesis.getVoices();
-      const selectedVoice = selectVoiceForJapanesePlayback(
-        voices,
-        voicePreference,
-      );
-
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-        utterance.lang = selectedVoice.lang;
-      } else {
-        setAudioError("No Japanese voice is available on this device.");
-        return false;
-      }
-      utterance.rate = ttsRate;
-      utterance.pitch = ttsPitch;
-
-      utterance.onerror = () => {
-        setAudioError("Unable to play audio prompt.");
-      };
-      utterance.onend = () => {
-        setAudioError(null);
-      };
-
-      synthesis.cancel();
-      synthesis.speak(utterance);
-      return true;
-    },
-    [ttsPitch, ttsRate, voicePreference],
-  );
+    synthesis.cancel();
+    synthesis.speak(utterance);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -195,7 +170,6 @@ function App() {
         }));
         const { bootstrapResult: result, sessionPlan: plannedSession } =
           await appReadyPromise;
-        const settings = await settingsRepo.getUserSettings();
 
         if (cancelled) {
           return;
@@ -203,9 +177,6 @@ function App() {
 
         setBootstrapResult(result);
         setSessionPlan(plannedSession);
-        setVoicePreference(settings.voicePreference);
-        setTtsRate(settings.ttsRate);
-        setTtsPitch(settings.ttsPitch);
         setStatus("ready");
       } catch (error) {
         if (cancelled) {
@@ -226,24 +197,6 @@ function App() {
 
     return () => {
       cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      return;
-    }
-
-    const synthesis = window.speechSynthesis;
-    const updateVoices = () => {
-      setAvailableVoices(synthesis.getVoices());
-    };
-
-    updateVoices();
-    synthesis.addEventListener("voiceschanged", updateVoices);
-
-    return () => {
-      synthesis.removeEventListener("voiceschanged", updateVoices);
     };
   }, []);
 
@@ -422,82 +375,12 @@ function App() {
     setAnswer("");
   }
 
-  async function handleVoicePreferenceChange(nextPreference: string) {
-    setIsSavingVoicePreference(true);
-    setSettingsError(null);
-
-    try {
-      const updated = await settingsRepo.updateSettings({
-        voicePreference: nextPreference.length > 0 ? nextPreference : undefined,
-      });
-
-      setVoicePreference(updated.voicePreference);
-      setTtsRate(updated.ttsRate);
-      setTtsPitch(updated.ttsPitch);
-    } catch (error) {
-      setSettingsError(
-        error instanceof Error
-          ? error.message
-          : "Failed to update voice preference.",
-      );
-    } finally {
-      setIsSavingVoicePreference(false);
-    }
-  }
-
-  async function handleTtsRateChange(nextRate: number) {
-    setIsSavingVoicePreference(true);
-    setSettingsError(null);
-
-    try {
-      const updated = await settingsRepo.updateSettings({
-        ttsRate: nextRate,
-      });
-
-      setVoicePreference(updated.voicePreference);
-      setTtsRate(updated.ttsRate);
-      setTtsPitch(updated.ttsPitch);
-    } catch (error) {
-      setSettingsError(
-        error instanceof Error
-          ? error.message
-          : "Failed to update speech rate.",
-      );
-    } finally {
-      setIsSavingVoicePreference(false);
-    }
-  }
-
-  async function handleTtsPitchChange(nextPitch: number) {
-    setIsSavingVoicePreference(true);
-    setSettingsError(null);
-
-    try {
-      const updated = await settingsRepo.updateSettings({
-        ttsPitch: nextPitch,
-      });
-
-      setVoicePreference(updated.voicePreference);
-      setTtsRate(updated.ttsRate);
-      setTtsPitch(updated.ttsPitch);
-    } catch (error) {
-      setSettingsError(
-        error instanceof Error
-          ? error.message
-          : "Failed to update speech pitch.",
-      );
-    } finally {
-      setIsSavingVoicePreference(false);
-    }
-  }
-
   async function handleInstallApp() {
     if (!installPromptEvent) {
       return;
     }
 
     setIsInstallingApp(true);
-    setSettingsError(null);
 
     try {
       await installPromptEvent.prompt();
@@ -508,12 +391,6 @@ function App() {
       }
 
       setInstallPromptEvent(null);
-    } catch (error) {
-      setSettingsError(
-        error instanceof Error
-          ? error.message
-          : "Failed to open install prompt.",
-      );
     } finally {
       setIsInstallingApp(false);
     }
@@ -615,82 +492,6 @@ function App() {
             </div>
 
             <section className="settings-panel">
-              <p className="section-label">Listening voice</p>
-              <label
-                className="settings-label"
-                htmlFor="voice-preference-select"
-              >
-                Voice preference
-              </label>
-              <select
-                id="voice-preference-select"
-                className="settings-select"
-                value={voicePreference ?? ""}
-                disabled={
-                  availableJapaneseVoices.length === 0 ||
-                  isSavingVoicePreference
-                }
-                onChange={(event) => {
-                  void handleVoicePreferenceChange(event.target.value);
-                }}
-              >
-                <option value="">Automatic Japanese fallback</option>
-                {availableJapaneseVoices.map((voice) => (
-                  <option key={voice.voiceURI} value={voice.voiceURI}>
-                    {voice.name} ({voice.lang})
-                  </option>
-                ))}
-              </select>
-              {availableJapaneseVoices.length === 0 && (
-                <p className="practice-hint">
-                  No Japanese TTS voice is currently available.
-                </p>
-              )}
-
-              <label className="settings-label" htmlFor="tts-rate-select">
-                Speech rate
-              </label>
-              <select
-                id="tts-rate-select"
-                className="settings-select"
-                value={ttsRate}
-                disabled={isSavingVoicePreference}
-                onChange={(event) => {
-                  void handleTtsRateChange(Number(event.target.value));
-                }}
-              >
-                <option value={0.8}>0.8x</option>
-                <option value={0.9}>0.9x</option>
-                <option value={1}>1.0x</option>
-                <option value={1.1}>1.1x</option>
-                <option value={1.2}>1.2x</option>
-              </select>
-
-              <label className="settings-label" htmlFor="tts-pitch-select">
-                Speech pitch
-              </label>
-              <select
-                id="tts-pitch-select"
-                className="settings-select"
-                value={ttsPitch}
-                disabled={isSavingVoicePreference}
-                onChange={(event) => {
-                  void handleTtsPitchChange(Number(event.target.value));
-                }}
-              >
-                <option value={0.8}>0.8</option>
-                <option value={0.9}>0.9</option>
-                <option value={1}>1.0</option>
-                <option value={1.1}>1.1</option>
-                <option value={1.2}>1.2</option>
-              </select>
-
-              {settingsError && (
-                <p className="status-message status-message--error">
-                  {settingsError}
-                </p>
-              )}
-
               <div className="install-panel">
                 <p className="section-label">Install app</p>
                 {isAppInstalled ? (

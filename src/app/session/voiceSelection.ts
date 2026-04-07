@@ -7,7 +7,6 @@ export interface SelectableVoice {
 
 export function selectVoiceForJapanesePlayback<T extends SelectableVoice>(
   voices: T[],
-  preferredVoice?: string,
 ): T | null {
   if (voices.length === 0) {
     return null;
@@ -19,18 +18,6 @@ export function selectVoiceForJapanesePlayback<T extends SelectableVoice>(
 
   if (japaneseVoices.length === 0) {
     return null;
-  }
-
-  if (preferredVoice) {
-    const preferred = japaneseVoices.find(
-      (voice) =>
-        voice.voiceURI === preferredVoice ||
-        voice.name.toLowerCase() === preferredVoice.toLowerCase(),
-    );
-
-    if (preferred) {
-      return preferred;
-    }
   }
 
   return (
