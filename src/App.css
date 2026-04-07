@@ -150,6 +150,14 @@
   padding-top: 0.8rem;
 }
 
+.voice-panel {
+  border-top: 1px solid #fed7aa;
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+  padding-top: 0.8rem;
+}
+
 .session-panel {
   border-top: 1px solid #fed7aa;
   margin-top: 1.5rem;

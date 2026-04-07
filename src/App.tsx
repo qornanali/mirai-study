@@ -80,6 +80,12 @@ function App() {
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [audioError, setAudioError] = useState<string | null>(null);
+  const [availableVoices, setAvailableVoices] = useState<
+    SpeechSynthesisVoice[]
+  >([]);
+  const [voicePreference, setVoicePreference] = useState<string | undefined>();
+  const [isSavingVoicePreference, setIsSavingVoicePreference] = useState(false);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
   const [installPromptEvent, setInstallPromptEvent] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
@@ -87,76 +93,89 @@ function App() {
 
   const isWritingPrompt = activeItem?.module === "writing";
   const isListeningPrompt = activeItem?.module === "listening";
+  const availableJapaneseVoices = availableVoices.filter((voice) =>
+    voice.lang.toLowerCase().startsWith("ja"),
+  );
 
-  const playListeningAudio = useCallback((prompt: VocabItem) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      setAudioError(
-        "Japanese text-to-speech is not available in this browser.",
+  const playListeningAudio = useCallback(
+    (prompt: VocabItem) => {
+      if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+        setAudioError(
+          "Japanese text-to-speech is not available in this browser.",
+        );
+        return;
+      }
+
+      const synthesis = window.speechSynthesis;
+      const utterance = new SpeechSynthesisUtterance(
+        prompt.reading ?? prompt.japanese,
       );
-      return;
-    }
-
-    const synthesis = window.speechSynthesis;
-    const utterance = new SpeechSynthesisUtterance(
-      prompt.reading ?? prompt.japanese,
-    );
-    const voices = synthesis.getVoices();
-    const selectedVoice = selectVoiceForJapanesePlayback(voices);
-
-    if (selectedVoice) {
-      utterance.voice = selectedVoice;
-      utterance.lang = selectedVoice.lang;
-    } else {
-      setAudioError("No Japanese voice is available on this device.");
-      return;
-    }
-    utterance.rate = 1;
-    utterance.pitch = 1;
-
-    utterance.onerror = () => {
-      setAudioError("Unable to play audio prompt.");
-    };
-    utterance.onend = () => {
-      setAudioError(null);
-    };
-
-    synthesis.cancel();
-    synthesis.speak(utterance);
-  }, []);
-
-  const playListeningText = useCallback((text: string) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-      setAudioError(
-        "Japanese text-to-speech is not available in this browser.",
+      const selectedVoice = selectVoiceForJapanesePlayback(
+        availableVoices,
+        voicePreference,
       );
-      return;
-    }
 
-    const synthesis = window.speechSynthesis;
-    const utterance = new SpeechSynthesisUtterance(text);
-    const voices = synthesis.getVoices();
-    const selectedVoice = selectVoiceForJapanesePlayback(voices);
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+        utterance.lang = selectedVoice.lang;
+      } else {
+        setAudioError("No Japanese voice is available on this device.");
+        return;
+      }
+      utterance.rate = 1;
+      utterance.pitch = 1;
 
-    if (selectedVoice) {
-      utterance.voice = selectedVoice;
-      utterance.lang = selectedVoice.lang;
-    } else {
-      setAudioError("No Japanese voice is available on this device.");
-      return;
-    }
-    utterance.rate = 1;
-    utterance.pitch = 1;
+      utterance.onerror = () => {
+        setAudioError("Unable to play audio prompt.");
+      };
+      utterance.onend = () => {
+        setAudioError(null);
+      };
 
-    utterance.onerror = () => {
-      setAudioError("Unable to play audio prompt.");
-    };
-    utterance.onend = () => {
-      setAudioError(null);
-    };
+      synthesis.cancel();
+      synthesis.speak(utterance);
+    },
+    [availableVoices, voicePreference],
+  );
 
-    synthesis.cancel();
-    synthesis.speak(utterance);
-  }, []);
+  const playListeningText = useCallback(
+    (text: string) => {
+      if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+        setAudioError(
+          "Japanese text-to-speech is not available in this browser.",
+        );
+        return;
+      }
+
+      const synthesis = window.speechSynthesis;
+      const utterance = new SpeechSynthesisUtterance(text);
+      const selectedVoice = selectVoiceForJapanesePlayback(
+        availableVoices,
+        voicePreference,
+      );
+
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+        utterance.lang = selectedVoice.lang;
+      } else {
+        setAudioError("No Japanese voice is available on this device.");
+        return;
+      }
+      utterance.rate = 1;
+      utterance.pitch = 1;
+
+      utterance.onerror = () => {
+        setAudioError("Unable to play audio prompt.");
+      };
+      utterance.onend = () => {
+        setAudioError(null);
+      };
+
+      synthesis.cancel();
+      synthesis.speak(utterance);
+    },
+    [availableVoices, voicePreference],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -170,6 +189,7 @@ function App() {
         }));
         const { bootstrapResult: result, sessionPlan: plannedSession } =
           await appReadyPromise;
+        const settings = await settingsRepo.getUserSettings();
 
         if (cancelled) {
           return;
@@ -177,6 +197,7 @@ function App() {
 
         setBootstrapResult(result);
         setSessionPlan(plannedSession);
+        setVoicePreference(settings.voicePreference);
         setStatus("ready");
       } catch (error) {
         if (cancelled) {
@@ -197,6 +218,24 @@ function App() {
 
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      return;
+    }
+
+    const synthesis = window.speechSynthesis;
+    const updateVoices = () => {
+      setAvailableVoices(synthesis.getVoices());
+    };
+
+    updateVoices();
+    synthesis.addEventListener("voiceschanged", updateVoices);
+
+    return () => {
+      synthesis.removeEventListener("voiceschanged", updateVoices);
     };
   }, []);
 
@@ -375,6 +414,27 @@ function App() {
     setAnswer("");
   }
 
+  async function handleVoicePreferenceChange(nextPreference: string) {
+    setIsSavingVoicePreference(true);
+    setSettingsError(null);
+
+    try {
+      const updated = await settingsRepo.updateSettings({
+        voicePreference: nextPreference.length > 0 ? nextPreference : undefined,
+      });
+
+      setVoicePreference(updated.voicePreference);
+    } catch (error) {
+      setSettingsError(
+        error instanceof Error
+          ? error.message
+          : "Failed to update voice preference.",
+      );
+    } finally {
+      setIsSavingVoicePreference(false);
+    }
+  }
+
   async function handleInstallApp() {
     if (!installPromptEvent) {
       return;
@@ -519,6 +579,45 @@ function App() {
                 ) : (
                   <p className="practice-hint">
                     Install option will appear when supported by your browser.
+                  </p>
+                )}
+              </div>
+
+              <div className="voice-panel">
+                <p className="section-label">Listening voice</p>
+                <label
+                  className="settings-label"
+                  htmlFor="voice-preference-select"
+                >
+                  Japanese voice
+                </label>
+                <select
+                  id="voice-preference-select"
+                  className="settings-select"
+                  value={voicePreference ?? ""}
+                  disabled={
+                    availableJapaneseVoices.length === 0 ||
+                    isSavingVoicePreference
+                  }
+                  onChange={(event) => {
+                    void handleVoicePreferenceChange(event.target.value);
+                  }}
+                >
+                  <option value="">Automatic (default)</option>
+                  {availableJapaneseVoices.map((voice) => (
+                    <option key={voice.voiceURI} value={voice.voiceURI}>
+                      {voice.name}
+                    </option>
+                  ))}
+                </select>
+                {availableJapaneseVoices.length === 0 && (
+                  <p className="practice-hint">
+                    No Japanese TTS voice is currently available.
+                  </p>
+                )}
+                {settingsError && (
+                  <p className="status-message status-message--error">
+                    {settingsError}
                   </p>
                 )}
               </div>
