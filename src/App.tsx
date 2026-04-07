@@ -70,6 +70,8 @@ function App() {
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [voicePreference, setVoicePreference] = useState<string | undefined>();
+  const [ttsRate, setTtsRate] = useState(1);
+  const [ttsPitch, setTtsPitch] = useState(1);
   const [audioError, setAudioError] = useState<string | null>(null);
   const [availableVoices, setAvailableVoices] = useState<
     SpeechSynthesisVoice[]
@@ -103,6 +105,8 @@ function App() {
       } else {
         utterance.lang = "ja-JP";
       }
+      utterance.rate = ttsRate;
+      utterance.pitch = ttsPitch;
 
       utterance.onerror = () => {
         setAudioError("Unable to play audio prompt.");
@@ -114,7 +118,7 @@ function App() {
       synthesis.cancel();
       synthesis.speak(utterance);
     },
-    [voicePreference],
+    [ttsPitch, ttsRate, voicePreference],
   );
 
   const playListeningText = useCallback(
@@ -138,6 +142,8 @@ function App() {
       } else {
         utterance.lang = "ja-JP";
       }
+      utterance.rate = ttsRate;
+      utterance.pitch = ttsPitch;
 
       utterance.onerror = () => {
         setAudioError("Unable to play audio prompt.");
@@ -149,7 +155,7 @@ function App() {
       synthesis.cancel();
       synthesis.speak(utterance);
     },
-    [voicePreference],
+    [ttsPitch, ttsRate, voicePreference],
   );
 
   useEffect(() => {
@@ -173,6 +179,8 @@ function App() {
         setBootstrapResult(result);
         setSessionPlan(plannedSession);
         setVoicePreference(settings.voicePreference);
+        setTtsRate(settings.ttsRate);
+        setTtsPitch(settings.ttsPitch);
         setStatus("ready");
       } catch (error) {
         if (cancelled) {
@@ -360,11 +368,59 @@ function App() {
       });
 
       setVoicePreference(updated.voicePreference);
+      setTtsRate(updated.ttsRate);
+      setTtsPitch(updated.ttsPitch);
     } catch (error) {
       setSettingsError(
         error instanceof Error
           ? error.message
           : "Failed to update voice preference.",
+      );
+    } finally {
+      setIsSavingVoicePreference(false);
+    }
+  }
+
+  async function handleTtsRateChange(nextRate: number) {
+    setIsSavingVoicePreference(true);
+    setSettingsError(null);
+
+    try {
+      const updated = await settingsRepo.updateSettings({
+        ttsRate: nextRate,
+      });
+
+      setVoicePreference(updated.voicePreference);
+      setTtsRate(updated.ttsRate);
+      setTtsPitch(updated.ttsPitch);
+    } catch (error) {
+      setSettingsError(
+        error instanceof Error
+          ? error.message
+          : "Failed to update speech rate.",
+      );
+    } finally {
+      setIsSavingVoicePreference(false);
+    }
+  }
+
+  async function handleTtsPitchChange(nextPitch: number) {
+    setIsSavingVoicePreference(true);
+    setSettingsError(null);
+
+    try {
+      const updated = await settingsRepo.updateSettings({
+        ttsPitch: nextPitch,
+      });
+
+      setVoicePreference(updated.voicePreference);
+      setTtsRate(updated.ttsRate);
+      setTtsPitch(updated.ttsPitch);
+    } catch (error) {
+      setSettingsError(
+        error instanceof Error
+          ? error.message
+          : "Failed to update speech pitch.",
       );
     } finally {
       setIsSavingVoicePreference(false);
@@ -497,6 +553,45 @@ function App() {
                   No browser voices are currently available.
                 </p>
               )}
+
+              <label className="settings-label" htmlFor="tts-rate-select">
+                Speech rate
+              </label>
+              <select
+                id="tts-rate-select"
+                className="settings-select"
+                value={ttsRate}
+                disabled={isSavingVoicePreference}
+                onChange={(event) => {
+                  void handleTtsRateChange(Number(event.target.value));
+                }}
+              >
+                <option value={0.8}>0.8x</option>
+                <option value={0.9}>0.9x</option>
+                <option value={1}>1.0x</option>
+                <option value={1.1}>1.1x</option>
+                <option value={1.2}>1.2x</option>
+              </select>
+
+              <label className="settings-label" htmlFor="tts-pitch-select">
+                Speech pitch
+              </label>
+              <select
+                id="tts-pitch-select"
+                className="settings-select"
+                value={ttsPitch}
+                disabled={isSavingVoicePreference}
+                onChange={(event) => {
+                  void handleTtsPitchChange(Number(event.target.value));
+                }}
+              >
+                <option value={0.8}>0.8</option>
+                <option value={0.9}>0.9</option>
+                <option value={1}>1.0</option>
+                <option value={1.1}>1.1</option>
+                <option value={1.2}>1.2</option>
+              </select>
+
               {settingsError && (
                 <p className="status-message status-message--error">
                   {settingsError}

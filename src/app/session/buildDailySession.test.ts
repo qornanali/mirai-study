@@ -216,6 +216,8 @@ describe("buildDailySession", () => {
         settingsRepo: new FakeSettingsRepo({
           theme: "system",
           dailyReviewCap: 3,
+          ttsRate: 1,
+          ttsPitch: 1,
         }),
       },
       { nowIso: "2026-04-07T10:00:00.000Z" },
@@ -265,6 +267,8 @@ describe("buildDailySession", () => {
         settingsRepo: new FakeSettingsRepo({
           theme: "system",
           dailyReviewCap: 2,
+          ttsRate: 1,
+          ttsPitch: 1,
         }),
       },
       { nowIso: "2026-04-07T10:00:00.000Z" },
@@ -319,6 +323,8 @@ describe("buildDailySession", () => {
         settingsRepo: new FakeSettingsRepo({
           theme: "system",
           dailyReviewCap: 2,
+          ttsRate: 1,
+          ttsPitch: 1,
         }),
       },
       { nowIso: "2026-04-07T10:00:00.000Z" },

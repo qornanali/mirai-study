@@ -4,6 +4,8 @@ import type { RenshuuDexieDatabase, StoredSettings } from "./db";
 const DEFAULT_SETTINGS: UserSettings = {
   theme: "system",
   dailyReviewCap: 30,
+  ttsRate: 1,
+  ttsPitch: 1,
 };
 
 function toUserSettings(settings: StoredSettings | undefined): UserSettings {
@@ -14,6 +16,8 @@ function toUserSettings(settings: StoredSettings | undefined): UserSettings {
   const result: UserSettings = {
     theme: settings.theme,
     dailyReviewCap: settings.dailyReviewCap,
+    ttsRate: settings.ttsRate ?? DEFAULT_SETTINGS.ttsRate,
+    ttsPitch: settings.ttsPitch ?? DEFAULT_SETTINGS.ttsPitch,
   };
 
   if (settings.voicePreference) {
@@ -37,6 +41,8 @@ export class DexieSettingsRepo implements ISettingsRepo {
       id: "user",
       theme: settings.theme ?? current.theme,
       dailyReviewCap: settings.dailyReviewCap ?? current.dailyReviewCap,
+      ttsRate: settings.ttsRate ?? current.ttsRate,
+      ttsPitch: settings.ttsPitch ?? current.ttsPitch,
     };
 
     const hasVoicePreferenceUpdate = Object.prototype.hasOwnProperty.call(

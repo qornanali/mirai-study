@@ -146,6 +146,8 @@ describe("Dexie repositories", () => {
       theme: "dark",
       dailyReviewCap: 50,
       voicePreference: "ja-JP-default",
+      ttsRate: 1.2,
+      ttsPitch: 0.9,
     });
     const clearedVoicePreference = await settingsRepo.updateSettings({
       voicePreference: undefined,
@@ -154,17 +156,23 @@ describe("Dexie repositories", () => {
     expect(defaults).toEqual({
       theme: "system",
       dailyReviewCap: 30,
+      ttsRate: 1,
+      ttsPitch: 1,
     });
 
     expect(updated).toEqual({
       theme: "dark",
       dailyReviewCap: 50,
       voicePreference: "ja-JP-default",
+      ttsRate: 1.2,
+      ttsPitch: 0.9,
     });
 
     expect(clearedVoicePreference).toEqual({
       theme: "dark",
       dailyReviewCap: 50,
+      ttsRate: 1.2,
+      ttsPitch: 0.9,
     });
   });
 });
