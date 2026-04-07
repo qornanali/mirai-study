@@ -1,0 +1,49 @@
+import type { RenshuuDexieDatabase } from "../dexie";
+import { adaptSeedKanjiItem } from "./kanjiVGAdapter";
+import { adaptSeedSentenceItem, adaptSeedVocabItem } from "./jmdictAdapter";
+import { rawSeedPackSchema, type RawSeedPack } from "./types";
+
+export interface SeedIngestionResult {
+  vocabInserted: number;
+  kanjiInserted: number;
+  sentencesInserted: number;
+}
+
+export async function ingestSeedData(
+  database: RenshuuDexieDatabase,
+  rawSeedPack: RawSeedPack,
+): Promise<SeedIngestionResult> {
+  const pack = rawSeedPackSchema.parse(rawSeedPack);
+  const vocab = pack.vocab.map(adaptSeedVocabItem);
+  const kanji = pack.kanji.map(adaptSeedKanjiItem);
+  const sentences = pack.sentences.map(adaptSeedSentenceItem);
+  const vocabIds = new Set(vocab.map((item) => item.id));
+
+  for (const sentence of sentences) {
+    for (const vocabId of sentence.vocabIds) {
+      if (!vocabIds.has(vocabId)) {
+        throw new Error(
+          `Sentence ${sentence.id} references unknown vocabId ${vocabId}.`,
+        );
+      }
+    }
+  }
+
+  await database.transaction(
+    "rw",
+    database.vocabItems,
+    database.kanjiItems,
+    database.sentenceItems,
+    async () => {
+      await database.vocabItems.bulkPut(vocab);
+      await database.kanjiItems.bulkPut(kanji);
+      await database.sentenceItems.bulkPut(sentences);
+    },
+  );
+
+  return {
+    vocabInserted: vocab.length,
+    kanjiInserted: kanji.length,
+    sentencesInserted: sentences.length,
+  };
+}
