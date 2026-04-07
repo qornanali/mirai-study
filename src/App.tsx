@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { initializeAppData, type AppBootstrapResult } from "./app/bootstrap";
 import {
   buildDailySession,
+  selectVoiceForJapanesePlayback,
   submitSessionAnswer,
   type DailySessionPlan,
   type SessionAnswerResult,
@@ -66,9 +67,48 @@ function App() {
   const [isRefreshingPlan, setIsRefreshingPlan] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [voicePreference, setVoicePreference] = useState<string | undefined>();
+  const [audioError, setAudioError] = useState<string | null>(null);
 
   const isWritingPrompt = activeItem?.module === "writing";
   const isListeningPrompt = activeItem?.module === "listening";
+
+  const playListeningAudio = useCallback(
+    (prompt: VocabItem) => {
+      if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+        setAudioError("Speech synthesis is not available in this browser.");
+        return;
+      }
+
+      const synthesis = window.speechSynthesis;
+      const utterance = new SpeechSynthesisUtterance(
+        prompt.reading ?? prompt.japanese,
+      );
+      const voices = synthesis.getVoices();
+      const selectedVoice = selectVoiceForJapanesePlayback(
+        voices,
+        voicePreference,
+      );
+
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+        utterance.lang = selectedVoice.lang;
+      } else {
+        utterance.lang = "ja-JP";
+      }
+
+      utterance.onerror = () => {
+        setAudioError("Unable to play audio prompt.");
+      };
+      utterance.onend = () => {
+        setAudioError(null);
+      };
+
+      synthesis.cancel();
+      synthesis.speak(utterance);
+    },
+    [voicePreference],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -82,6 +122,7 @@ function App() {
         }));
         const { bootstrapResult: result, sessionPlan: plannedSession } =
           await appReadyPromise;
+        const settings = await settingsRepo.getUserSettings();
 
         if (cancelled) {
           return;
@@ -89,6 +130,7 @@ function App() {
 
         setBootstrapResult(result);
         setSessionPlan(plannedSession);
+        setVoicePreference(settings.voicePreference);
         setStatus("ready");
       } catch (error) {
         if (cancelled) {
@@ -152,8 +194,13 @@ function App() {
         setActiveItem(item);
         setActivePrompt(prompt);
         setSessionError(null);
+        setAudioError(null);
         setAnswer("");
         setSubmission(null);
+
+        if (item.module === "listening") {
+          playListeningAudio(prompt);
+        }
       } catch (error) {
         if (cancelled) {
           return;
@@ -172,7 +219,7 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [activeIndex, sessionPlan, sessionStatus, status]);
+  }, [activeIndex, playListeningAudio, sessionPlan, sessionStatus, status]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -213,6 +260,7 @@ function App() {
     setSessionStatus("active");
     setCompletedSessionSummary({ answered: 0, correct: 0 });
     setSessionError(null);
+    setAudioError(null);
     setSubmission(null);
     setAnswer("");
   }
@@ -420,9 +468,22 @@ function App() {
                         <>
                           <div className="practice-word">Audio prompt</div>
                           <p className="practice-hint">
-                            Temporary mode: type the pronunciation from memory
-                            while TTS integration is in progress.
+                            Listen and type what you hear.
                           </p>
+                          <button
+                            className="secondary-button"
+                            type="button"
+                            onClick={() =>
+                              activePrompt && playListeningAudio(activePrompt)
+                            }
+                          >
+                            Replay audio
+                          </button>
+                          {audioError && (
+                            <p className="status-message status-message--error">
+                              {audioError}
+                            </p>
+                          )}
                         </>
                       ) : (
                         <>
