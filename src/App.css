@@ -98,6 +98,12 @@
   margin-top: 1.5rem;
 }
 
+.queue-panel {
+  border-top: 1px solid #fed7aa;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+}
+
 .summary-grid article {
   background: #fff7ed;
   border: 1px solid #fed7aa;

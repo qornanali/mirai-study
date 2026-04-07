@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { initializeAppData, type AppBootstrapResult } from "./app/bootstrap";
-import { db } from "./data/dexie";
+import { buildDailySession, type DailySessionPlan } from "./app/session";
+import {
+  db,
+  DexieJapaneseDataRepo,
+  DexieProgressRepo,
+  DexieSettingsRepo,
+} from "./data/dexie";
 import "./App.css";
 
 type AppStatus = "loading" | "ready" | "error";
@@ -11,6 +17,7 @@ function App() {
   const [status, setStatus] = useState<AppStatus>("loading");
   const [bootstrapResult, setBootstrapResult] =
     useState<AppBootstrapResult | null>(null);
+  const [sessionPlan, setSessionPlan] = useState<DailySessionPlan | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -19,13 +26,26 @@ function App() {
     async function bootstrap() {
       try {
         bootstrapPromise ??= initializeAppData(db);
-        const result = await bootstrapPromise;
+        const [result, plannedSession] = await Promise.all([
+          bootstrapPromise,
+          buildDailySession(
+            {
+              dataRepo: new DexieJapaneseDataRepo(db),
+              progressRepo: new DexieProgressRepo(db),
+              settingsRepo: new DexieSettingsRepo(db),
+            },
+            {
+              nowIso: new Date().toISOString(),
+            },
+          ),
+        ]);
 
         if (cancelled) {
           return;
         }
 
         setBootstrapResult(result);
+        setSessionPlan(plannedSession);
         setStatus("ready");
       } catch (error) {
         if (cancelled) {
@@ -106,6 +126,26 @@ function App() {
                 <strong>{bootstrapResult.summary.sentences}</strong>
               </article>
             </div>
+
+            {sessionPlan && (
+              <section className="queue-panel">
+                <p className="section-label">Today&apos;s queue</p>
+                <div className="summary-grid">
+                  <article>
+                    <span className="summary-label">Planned items</span>
+                    <strong>{sessionPlan.items.length}</strong>
+                  </article>
+                  <article>
+                    <span className="summary-label">Due reviews</span>
+                    <strong>{sessionPlan.dueCount}</strong>
+                  </article>
+                  <article>
+                    <span className="summary-label">New items</span>
+                    <strong>{sessionPlan.newCount}</strong>
+                  </article>
+                </div>
+              </section>
+            )}
           </>
         )}
       </section>
