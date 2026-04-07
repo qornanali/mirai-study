@@ -118,6 +118,116 @@
   font-size: 2rem;
 }
 
+.session-panel {
+  border-top: 1px solid #fed7aa;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+}
+
+.session-panel__header {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.session-panel__header h3 {
+  color: #7c2d12;
+  margin: 0.35rem 0 0;
+}
+
+.primary-button {
+  appearance: none;
+  background: linear-gradient(135deg, #c2410c, #ea580c);
+  border: 0;
+  border-radius: 999px;
+  color: #fff7ed;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 0.8rem 1.2rem;
+}
+
+.primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.practice-card {
+  background: #fffaf5;
+  border: 1px solid #fdba74;
+  border-radius: 20px;
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+}
+
+.practice-card__meta {
+  color: #9a3412;
+  display: flex;
+  font-size: 0.95rem;
+  font-weight: 600;
+  justify-content: space-between;
+}
+
+.practice-badge {
+  background: #ffedd5;
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  text-transform: capitalize;
+}
+
+.practice-word {
+  color: #7c2d12;
+  font-size: clamp(2rem, 7vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.practice-hint,
+.practice-label {
+  color: #9a3412;
+  margin: 0;
+}
+
+.practice-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.practice-input {
+  background: #ffffff;
+  border: 1px solid #fdba74;
+  border-radius: 14px;
+  color: #7c2d12;
+  font: inherit;
+  padding: 0.9rem 1rem;
+}
+
+.feedback-panel {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 16px;
+  display: grid;
+  gap: 0.65rem;
+  padding: 1rem;
+}
+
+.feedback-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.feedback-text--correct {
+  color: #166534;
+}
+
+.feedback-text--incorrect {
+  color: #b91c1c;
+}
+
 @media (max-width: 640px) {
   .app-shell {
     padding: 1.5rem 1rem 2rem;
@@ -135,5 +245,11 @@
 
   .status-pill {
     align-self: flex-start;
+  }
+
+  .session-panel__header,
+  .practice-card__meta {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

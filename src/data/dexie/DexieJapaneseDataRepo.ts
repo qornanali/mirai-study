@@ -11,6 +11,11 @@ import type { RenshuuDexieDatabase } from "./db";
 export class DexieJapaneseDataRepo implements IJapaneseDataRepo {
   constructor(private readonly database: RenshuuDexieDatabase) {}
 
+  async getVocabById(id: string): Promise<VocabItem | null> {
+    const row = await this.database.vocabItems.get(id);
+    return row ? vocabItemSchema.parse(row) : null;
+  }
+
   async getVocabBatch(
     level: JLPTLevel,
     limit: number,

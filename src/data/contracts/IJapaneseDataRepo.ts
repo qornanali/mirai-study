@@ -6,6 +6,7 @@ import type {
 } from "../../types";
 
 export interface IJapaneseDataRepo {
+  getVocabById(id: string): Promise<VocabItem | null>;
   getVocabBatch(
     level: JLPTLevel,
     limit: number,

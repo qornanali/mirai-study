@@ -1,23 +1,49 @@
 import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { initializeAppData, type AppBootstrapResult } from "./app/bootstrap";
-import { buildDailySession, type DailySessionPlan } from "./app/session";
+import {
+  buildDailySession,
+  submitSessionAnswer,
+  type DailySessionPlan,
+  type SessionAnswerResult,
+  type SessionQueueItem,
+} from "./app/session";
 import {
   db,
   DexieJapaneseDataRepo,
   DexieProgressRepo,
   DexieSettingsRepo,
 } from "./data/dexie";
+import type { VocabItem } from "./types";
 import "./App.css";
 
 type AppStatus = "loading" | "ready" | "error";
+type SessionStatus = "idle" | "active" | "complete";
 
 let bootstrapPromise: Promise<AppBootstrapResult> | null = null;
+let appReadyPromise: Promise<{
+  bootstrapResult: AppBootstrapResult;
+  sessionPlan: DailySessionPlan;
+}> | null = null;
+
+const dataRepo = new DexieJapaneseDataRepo(db);
+const progressRepo = new DexieProgressRepo(db);
+const settingsRepo = new DexieSettingsRepo(db);
 
 function App() {
   const [status, setStatus] = useState<AppStatus>("loading");
   const [bootstrapResult, setBootstrapResult] =
     useState<AppBootstrapResult | null>(null);
   const [sessionPlan, setSessionPlan] = useState<DailySessionPlan | null>(null);
+  const [sessionStatus, setSessionStatus] = useState<SessionStatus>("idle");
+  const [activeItem, setActiveItem] = useState<SessionQueueItem | null>(null);
+  const [activePrompt, setActivePrompt] = useState<VocabItem | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [answer, setAnswer] = useState("");
+  const [submission, setSubmission] = useState<SessionAnswerResult | null>(
+    null,
+  );
+  const [sessionError, setSessionError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -26,19 +52,21 @@ function App() {
     async function bootstrap() {
       try {
         bootstrapPromise ??= initializeAppData(db);
-        const [result, plannedSession] = await Promise.all([
-          bootstrapPromise,
-          buildDailySession(
+        appReadyPromise ??= bootstrapPromise.then(async (result) => ({
+          bootstrapResult: result,
+          sessionPlan: await buildDailySession(
             {
-              dataRepo: new DexieJapaneseDataRepo(db),
-              progressRepo: new DexieProgressRepo(db),
-              settingsRepo: new DexieSettingsRepo(db),
+              dataRepo,
+              progressRepo,
+              settingsRepo,
             },
             {
               nowIso: new Date().toISOString(),
             },
           ),
-        ]);
+        }));
+        const { bootstrapResult: result, sessionPlan: plannedSession } =
+          await appReadyPromise;
 
         if (cancelled) {
           return;
@@ -68,6 +96,122 @@ function App() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPrompt() {
+      if (
+        status !== "ready" ||
+        sessionStatus !== "active" ||
+        !sessionPlan ||
+        sessionPlan.items.length === 0
+      ) {
+        return;
+      }
+
+      const item = sessionPlan.items[activeIndex] ?? null;
+
+      if (!item) {
+        if (!cancelled) {
+          setActiveItem(null);
+          setActivePrompt(null);
+          setSessionStatus("complete");
+        }
+        return;
+      }
+
+      try {
+        const prompt = await dataRepo.getVocabById(item.itemId);
+
+        if (cancelled) {
+          return;
+        }
+
+        if (!prompt) {
+          throw new Error(
+            `Missing vocab item ${item.itemId} for session prompt.`,
+          );
+        }
+
+        setActiveItem(item);
+        setActivePrompt(prompt);
+        setSessionError(null);
+        setAnswer("");
+        setSubmission(null);
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        setSessionError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load session item.",
+        );
+      }
+    }
+
+    void loadPrompt();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeIndex, sessionPlan, sessionStatus, status]);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!activeItem) {
+      return;
+    }
+
+    try {
+      const result = await submitSessionAnswer(
+        {
+          dataRepo,
+          progressRepo,
+        },
+        {
+          item: activeItem,
+          nowIso: new Date().toISOString(),
+          userAnswer: answer,
+        },
+      );
+
+      setSubmission(result);
+      setSessionError(null);
+    } catch (error) {
+      setSessionError(
+        error instanceof Error ? error.message : "Failed to submit answer.",
+      );
+    }
+  }
+
+  function handleStartSession() {
+    setActiveIndex(0);
+    setSessionStatus("active");
+    setSessionError(null);
+    setSubmission(null);
+    setAnswer("");
+  }
+
+  function handleNextItem() {
+    if (!sessionPlan) {
+      return;
+    }
+
+    const nextIndex = activeIndex + 1;
+
+    if (nextIndex >= sessionPlan.items.length) {
+      setSessionStatus("complete");
+      setActiveItem(null);
+      setActivePrompt(null);
+      return;
+    }
+
+    setActiveIndex(nextIndex);
+  }
 
   return (
     <main className="app-shell">
@@ -143,6 +287,129 @@ function App() {
                     <span className="summary-label">New items</span>
                     <strong>{sessionPlan.newCount}</strong>
                   </article>
+                </div>
+
+                <div className="session-panel">
+                  <div className="session-panel__header">
+                    <div>
+                      <p className="section-label">Reading practice</p>
+                      <h3>Play today&apos;s first session</h3>
+                    </div>
+                    {sessionStatus === "idle" &&
+                      sessionPlan.items.length > 0 && (
+                        <button
+                          className="primary-button"
+                          type="button"
+                          onClick={handleStartSession}
+                        >
+                          Start session
+                        </button>
+                      )}
+                  </div>
+
+                  {sessionPlan.items.length === 0 && (
+                    <p className="status-message">
+                      No items are queued yet. Add more content or wait until
+                      reviews are due.
+                    </p>
+                  )}
+
+                  {sessionStatus === "complete" && (
+                    <p className="status-message">
+                      Session complete. You worked through{" "}
+                      {sessionPlan.items.length} queued item
+                      {sessionPlan.items.length === 1 ? "" : "s"}.
+                    </p>
+                  )}
+
+                  {sessionStatus === "active" && activePrompt && activeItem && (
+                    <div className="practice-card">
+                      <div className="practice-card__meta">
+                        <span>
+                          Item {activeIndex + 1} of {sessionPlan.items.length}
+                        </span>
+                        <span className="practice-badge">
+                          {activeItem.type}
+                        </span>
+                      </div>
+
+                      <p className="section-label">Type the kana reading</p>
+                      <div className="practice-word">
+                        {activePrompt.japanese}
+                      </div>
+                      <p className="practice-hint">
+                        Meaning: {activePrompt.english}
+                      </p>
+
+                      <form className="practice-form" onSubmit={handleSubmit}>
+                        <label
+                          className="practice-label"
+                          htmlFor="reading-answer"
+                        >
+                          Your answer
+                        </label>
+                        <input
+                          id="reading-answer"
+                          className="practice-input"
+                          value={answer}
+                          onChange={(event) => setAnswer(event.target.value)}
+                          placeholder="かなで入力"
+                          autoComplete="off"
+                          disabled={submission !== null}
+                        />
+                        <button
+                          className="primary-button"
+                          type="submit"
+                          disabled={
+                            answer.trim().length === 0 || submission !== null
+                          }
+                        >
+                          Check answer
+                        </button>
+                      </form>
+
+                      {sessionError && (
+                        <p className="status-message status-message--error">
+                          {sessionError}
+                        </p>
+                      )}
+
+                      {submission && (
+                        <div className="feedback-panel">
+                          <p
+                            className={
+                              submission.attempt.result.isCorrect
+                                ? "feedback-text feedback-text--correct"
+                                : "feedback-text feedback-text--incorrect"
+                            }
+                          >
+                            {submission.attempt.result.isCorrect
+                              ? "Correct"
+                              : "Not quite"}
+                          </p>
+                          <p className="practice-hint">
+                            Expected reading:{" "}
+                            {submission.attempt.expectedAnswer}
+                          </p>
+                          <p className="practice-hint">
+                            Next review:{" "}
+                            {new Date(
+                              submission.reviewState.dueAt,
+                            ).toLocaleString()}
+                          </p>
+                          <button
+                            className="primary-button"
+                            type="button"
+                            onClick={handleNextItem}
+                          >
+                            {activeIndex + 1 >= sessionPlan.items.length
+                              ? "Finish session"
+                              : "Next item"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </section>
             )}

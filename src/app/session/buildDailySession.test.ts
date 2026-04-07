@@ -20,6 +20,10 @@ import { buildDailySession } from "./buildDailySession";
 class FakeDataRepo implements IJapaneseDataRepo {
   constructor(private readonly vocabItems: VocabItem[]) {}
 
+  async getVocabById(id: string): Promise<VocabItem | null> {
+    return this.vocabItems.find((item) => item.id === id) ?? null;
+  }
+
   async getVocabBatch(
     level: JLPTLevel,
     limit: number,

@@ -70,11 +70,13 @@ describe("Dexie repositories", () => {
       vocabIds: ["v1"],
     });
 
+    const vocabById = await dataRepo.getVocabById("v1");
     const vocab = await dataRepo.getVocabBatch("N5", 10, 0);
     const kanji = await dataRepo.getKanjiByLevel("N5", 10, 0);
     const sentences = await dataRepo.searchSentencesByVocab("v1", 10);
     const count = await dataRepo.countItemsByLevel("N5");
 
+    expect(vocabById?.japanese).toBe("猫");
     expect(vocab).toHaveLength(2);
     expect(kanji).toHaveLength(1);
     expect(sentences).toHaveLength(1);
