@@ -20,6 +20,11 @@ import "./App.css";
 type AppStatus = "loading" | "ready" | "error";
 type SessionStatus = "idle" | "active" | "complete";
 
+interface CompletedSessionSummary {
+  answered: number;
+  correct: number;
+}
+
 let bootstrapPromise: Promise<AppBootstrapResult> | null = null;
 let appReadyPromise: Promise<{
   bootstrapResult: AppBootstrapResult;
@@ -29,6 +34,19 @@ let appReadyPromise: Promise<{
 const dataRepo = new DexieJapaneseDataRepo(db);
 const progressRepo = new DexieProgressRepo(db);
 const settingsRepo = new DexieSettingsRepo(db);
+
+async function loadLatestSessionPlan(nowIso: string) {
+  return buildDailySession(
+    {
+      dataRepo,
+      progressRepo,
+      settingsRepo,
+    },
+    {
+      nowIso,
+    },
+  );
+}
 
 function App() {
   const [status, setStatus] = useState<AppStatus>("loading");
@@ -43,6 +61,9 @@ function App() {
   const [submission, setSubmission] = useState<SessionAnswerResult | null>(
     null,
   );
+  const [completedSessionSummary, setCompletedSessionSummary] =
+    useState<CompletedSessionSummary | null>(null);
+  const [isRefreshingPlan, setIsRefreshingPlan] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -54,16 +75,7 @@ function App() {
         bootstrapPromise ??= initializeAppData(db);
         appReadyPromise ??= bootstrapPromise.then(async (result) => ({
           bootstrapResult: result,
-          sessionPlan: await buildDailySession(
-            {
-              dataRepo,
-              progressRepo,
-              settingsRepo,
-            },
-            {
-              nowIso: new Date().toISOString(),
-            },
-          ),
+          sessionPlan: await loadLatestSessionPlan(new Date().toISOString()),
         }));
         const { bootstrapResult: result, sessionPlan: plannedSession } =
           await appReadyPromise;
@@ -180,6 +192,11 @@ function App() {
       );
 
       setSubmission(result);
+      setCompletedSessionSummary((current) => ({
+        answered: (current?.answered ?? 0) + 1,
+        correct:
+          (current?.correct ?? 0) + (result.attempt.result.isCorrect ? 1 : 0),
+      }));
       setSessionError(null);
     } catch (error) {
       setSessionError(
@@ -191,12 +208,13 @@ function App() {
   function handleStartSession() {
     setActiveIndex(0);
     setSessionStatus("active");
+    setCompletedSessionSummary({ answered: 0, correct: 0 });
     setSessionError(null);
     setSubmission(null);
     setAnswer("");
   }
 
-  function handleNextItem() {
+  async function handleNextItem() {
     if (!sessionPlan) {
       return;
     }
@@ -207,6 +225,25 @@ function App() {
       setSessionStatus("complete");
       setActiveItem(null);
       setActivePrompt(null);
+      setIsRefreshingPlan(true);
+
+      try {
+        const refreshedPlan = await loadLatestSessionPlan(
+          new Date().toISOString(),
+        );
+
+        setSessionPlan(refreshedPlan);
+        setSessionError(null);
+      } catch (error) {
+        setSessionError(
+          error instanceof Error
+            ? error.message
+            : "Failed to refresh session plan.",
+        );
+      } finally {
+        setIsRefreshingPlan(false);
+      }
+
       return;
     }
 
@@ -315,11 +352,38 @@ function App() {
                   )}
 
                   {sessionStatus === "complete" && (
-                    <p className="status-message">
-                      Session complete. You worked through{" "}
-                      {sessionPlan.items.length} queued item
-                      {sessionPlan.items.length === 1 ? "" : "s"}.
-                    </p>
+                    <div className="completion-panel">
+                      <p className="status-message">
+                        Session complete. You answered{" "}
+                        {completedSessionSummary?.answered ?? 0} item
+                        {(completedSessionSummary?.answered ?? 0) === 1
+                          ? ""
+                          : "s"}
+                        , with {completedSessionSummary?.correct ?? 0} correct.
+                      </p>
+                      {isRefreshingPlan ? (
+                        <p className="practice-hint">
+                          Refreshing today&apos;s queue...
+                        </p>
+                      ) : (
+                        <>
+                          <p className="practice-hint">
+                            Updated queue: {sessionPlan.items.length} remaining
+                            item
+                            {sessionPlan.items.length === 1 ? "" : "s"}.
+                          </p>
+                          {sessionPlan.items.length > 0 && (
+                            <button
+                              className="primary-button"
+                              type="button"
+                              onClick={handleStartSession}
+                            >
+                              Start another session
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
                   )}
 
                   {sessionStatus === "active" && activePrompt && activeItem && (

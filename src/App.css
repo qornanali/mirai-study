@@ -228,6 +228,16 @@
   color: #b91c1c;
 }
 
+.completion-panel {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 16px;
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
 @media (max-width: 640px) {
   .app-shell {
     padding: 1.5rem 1rem 2rem;
