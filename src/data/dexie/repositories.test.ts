@@ -148,9 +148,13 @@ describe("Dexie repositories", () => {
       voicePreference: "ja-JP-default",
       ttsRate: 1.2,
       ttsPitch: 0.9,
+      furiganaEnabled: false,
     });
     const clearedVoicePreference = await settingsRepo.updateSettings({
       voicePreference: undefined,
+    });
+    const enabledFurigana = await settingsRepo.updateSettings({
+      furiganaEnabled: true,
     });
 
     expect(defaults).toEqual({
@@ -158,6 +162,7 @@ describe("Dexie repositories", () => {
       dailyReviewCap: 30,
       ttsRate: 1,
       ttsPitch: 1,
+      furiganaEnabled: true,
     });
 
     expect(updated).toEqual({
@@ -166,6 +171,7 @@ describe("Dexie repositories", () => {
       voicePreference: "ja-JP-default",
       ttsRate: 1.2,
       ttsPitch: 0.9,
+      furiganaEnabled: false,
     });
 
     expect(clearedVoicePreference).toEqual({
@@ -173,6 +179,15 @@ describe("Dexie repositories", () => {
       dailyReviewCap: 50,
       ttsRate: 1.2,
       ttsPitch: 0.9,
+      furiganaEnabled: false,
+    });
+
+    expect(enabledFurigana).toEqual({
+      theme: "dark",
+      dailyReviewCap: 50,
+      ttsRate: 1.2,
+      ttsPitch: 0.9,
+      furiganaEnabled: true,
     });
   });
 });

@@ -6,6 +6,7 @@ const DEFAULT_SETTINGS: UserSettings = {
   dailyReviewCap: 30,
   ttsRate: 1,
   ttsPitch: 1,
+  furiganaEnabled: true,
 };
 
 function toUserSettings(settings: StoredSettings | undefined): UserSettings {
@@ -18,6 +19,8 @@ function toUserSettings(settings: StoredSettings | undefined): UserSettings {
     dailyReviewCap: settings.dailyReviewCap,
     ttsRate: settings.ttsRate ?? DEFAULT_SETTINGS.ttsRate,
     ttsPitch: settings.ttsPitch ?? DEFAULT_SETTINGS.ttsPitch,
+    furiganaEnabled:
+      settings.furiganaEnabled ?? DEFAULT_SETTINGS.furiganaEnabled,
   };
 
   if (settings.voicePreference) {
@@ -43,6 +46,12 @@ export class DexieSettingsRepo implements ISettingsRepo {
       dailyReviewCap: settings.dailyReviewCap ?? current.dailyReviewCap,
       ttsRate: settings.ttsRate ?? current.ttsRate,
       ttsPitch: settings.ttsPitch ?? current.ttsPitch,
+      furiganaEnabled: Object.prototype.hasOwnProperty.call(
+        settings,
+        "furiganaEnabled",
+      )
+        ? settings.furiganaEnabled
+        : current.furiganaEnabled,
     };
 
     const hasVoicePreferenceUpdate = Object.prototype.hasOwnProperty.call(

@@ -158,6 +158,27 @@
   padding-top: 0.8rem;
 }
 
+.furigana-panel {
+  border-top: 1px solid #fed7aa;
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+  padding-top: 0.8rem;
+}
+
+.settings-toggle {
+  align-items: center;
+  color: #7c2d12;
+  display: flex;
+  gap: 0.55rem;
+}
+
+.settings-checkbox {
+  accent-color: #c2410c;
+  height: 1rem;
+  width: 1rem;
+}
+
 .session-panel {
   border-top: 1px solid #fed7aa;
   margin-top: 1.5rem;

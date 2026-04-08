@@ -85,6 +85,9 @@ function App() {
   >([]);
   const [voicePreference, setVoicePreference] = useState<string | undefined>();
   const [isSavingVoicePreference, setIsSavingVoicePreference] = useState(false);
+  const [furiganaEnabled, setFuriganaEnabled] = useState(true);
+  const [isSavingFuriganaPreference, setIsSavingFuriganaPreference] =
+    useState(false);
   const [settingsError, setSettingsError] = useState<string | null>(null);
   const [installPromptEvent, setInstallPromptEvent] =
     useState<BeforeInstallPromptEvent | null>(null);
@@ -198,6 +201,7 @@ function App() {
         setBootstrapResult(result);
         setSessionPlan(plannedSession);
         setVoicePreference(settings.voicePreference);
+        setFuriganaEnabled(settings.furiganaEnabled ?? true);
         setStatus("ready");
       } catch (error) {
         if (cancelled) {
@@ -435,6 +439,27 @@ function App() {
     }
   }
 
+  async function handleFuriganaPreferenceChange(nextEnabled: boolean) {
+    setIsSavingFuriganaPreference(true);
+    setSettingsError(null);
+
+    try {
+      const updated = await settingsRepo.updateSettings({
+        furiganaEnabled: nextEnabled,
+      });
+
+      setFuriganaEnabled(updated.furiganaEnabled ?? true);
+    } catch (error) {
+      setSettingsError(
+        error instanceof Error
+          ? error.message
+          : "Failed to update furigana preference.",
+      );
+    } finally {
+      setIsSavingFuriganaPreference(false);
+    }
+  }
+
   async function handleInstallApp() {
     if (!installPromptEvent) {
       return;
@@ -621,6 +646,23 @@ function App() {
                   </p>
                 )}
               </div>
+
+              <div className="furigana-panel">
+                <p className="section-label">Reading aid</p>
+                <label className="settings-toggle" htmlFor="furigana-toggle">
+                  <input
+                    id="furigana-toggle"
+                    className="settings-checkbox"
+                    type="checkbox"
+                    checked={furiganaEnabled}
+                    disabled={isSavingFuriganaPreference}
+                    onChange={(event) => {
+                      void handleFuriganaPreferenceChange(event.target.checked);
+                    }}
+                  />
+                  Show furigana during reading practice
+                </label>
+              </div>
             </section>
 
             {sessionPlan && (
@@ -782,6 +824,11 @@ function App() {
                           <div className="practice-word">
                             {activePrompt.japanese}
                           </div>
+                          {furiganaEnabled && activePrompt.reading && (
+                            <p className="practice-hint">
+                              Furigana: {activePrompt.reading}
+                            </p>
+                          )}
                           <p className="practice-hint">
                             Meaning: {activePrompt.english}
                           </p>
