@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import {
   selectVoiceForJapanesePlayback,
   submitSessionAnswer,
+  useKanaInput,
   type DailySessionPlan,
   type SessionAnswerResult,
   type SessionQueueItem,
@@ -37,7 +38,7 @@ export function PracticeScreen({
   const [activePrompt, setActivePrompt] = useState<VocabItem | null>(null);
   const [activeSentencePrompt, setActiveSentencePrompt] =
     useState<SentenceItem | null>(null);
-  const [answer, setAnswer] = useState("");
+  const kanaInput = useKanaInput();
   const [submission, setSubmission] = useState<SessionAnswerResult | null>(
     null,
   );
@@ -183,16 +184,8 @@ export function PracticeScreen({
         setActiveSentencePrompt(sentence);
         setSessionError(null);
         setAudioError(null);
-        setAnswer("");
+        kanaInput.reset();
         setSubmission(null);
-
-        if (item.module === "listening") {
-          if (item.promptType === "sentence" && sentence) {
-            playListeningText(sentence.reading ?? sentence.japanese);
-          } else if (prompt) {
-            playListeningAudio(prompt);
-          }
-        }
 
         if (item.module === "listening") {
           if (item.promptType === "sentence" && sentence) {
@@ -243,7 +236,7 @@ export function PracticeScreen({
         {
           item: activeItem,
           nowIso: new Date().toISOString(),
-          userAnswer: answer,
+          userAnswer: kanaInput.value,
         },
       );
 
@@ -268,7 +261,7 @@ export function PracticeScreen({
     setSessionError(null);
     setAudioError(null);
     setSubmission(null);
-    setAnswer("");
+    kanaInput.reset();
   }
 
   async function handleNextItem() {
@@ -295,7 +288,7 @@ export function PracticeScreen({
     setActiveItem(null);
     setActivePrompt(null);
     setActiveSentencePrompt(null);
-    setAnswer("");
+    kanaInput.reset();
     setSubmission(null);
     setCompletedSessionSummary(null);
     onNavigateToHome();
@@ -457,8 +450,8 @@ export function PracticeScreen({
               <input
                 id="reading-answer"
                 className="practice-input"
-                value={answer}
-                onChange={(event) => setAnswer(event.target.value)}
+                value={kanaInput.value}
+                onChange={kanaInput.onChange}
                 placeholder={
                   isWritingPrompt
                     ? "日本語または romaji"
@@ -467,12 +460,17 @@ export function PracticeScreen({
                       : "かなで入力"
                 }
                 autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
                 disabled={submission !== null}
               />
               <button
                 className="primary-button"
                 type="submit"
-                disabled={answer.trim().length === 0 || submission !== null}
+                disabled={
+                  kanaInput.value.trim().length === 0 || submission !== null
+                }
               >
                 Check answer
               </button>
