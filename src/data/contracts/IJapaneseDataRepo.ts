@@ -7,7 +7,6 @@ import type {
 
 export interface IJapaneseDataRepo {
   getVocabById(id: string): Promise<VocabItem | null>;
-  getKanjiById(id: string): Promise<KanjiItem | null>;
   getSentenceById(id: string): Promise<SentenceItem | null>;
   getVocabBatch(
     level: JLPTLevel,

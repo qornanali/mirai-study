@@ -15,7 +15,7 @@ import {
   DexieProgressRepo,
   DexieSettingsRepo,
 } from "./data/dexie";
-import type { SentenceItem, VocabItem, KanjiItem } from "./types";
+import type { SentenceItem, VocabItem } from "./types";
 import "./App.css";
 
 type AppStatus = "loading" | "ready" | "error";
@@ -69,9 +69,6 @@ function App() {
   const [activePrompt, setActivePrompt] = useState<VocabItem | null>(null);
   const [activeSentencePrompt, setActiveSentencePrompt] =
     useState<SentenceItem | null>(null);
-  const [activeKanjiPrompt, setActiveKanjiPrompt] = useState<KanjiItem | null>(
-    null,
-  );
   const [activeIndex, setActiveIndex] = useState(0);
   const [answer, setAnswer] = useState("");
   const [submission, setSubmission] = useState<SessionAnswerResult | null>(
@@ -306,56 +303,6 @@ function App() {
       }
 
       try {
-        if (item.module === "kanji") {
-          const kanji = await dataRepo.getKanjiById(item.itemId);
-
-          if (cancelled) {
-            return;
-          }
-
-          if (!kanji) {
-            throw new Error(
-              `Missing kanji item ${item.itemId} for session prompt.`,
-            );
-          }
-
-          setActiveItem(item);
-          setActivePrompt(null);
-          setActiveKanjiPrompt(kanji);
-          setActiveSentencePrompt(null);
-          setSessionError(null);
-          setAudioError(null);
-          setAnswer("");
-          setSubmission(null);
-          return;
-        }
-
-        if (item.module === "listening" && item.promptType === "sentence") {
-          const sentence = await dataRepo.getSentenceById(item.itemId);
-
-          if (cancelled) {
-            return;
-          }
-
-          if (!sentence) {
-            throw new Error(
-              `Missing sentence item ${item.itemId} for listening prompt.`,
-            );
-          }
-
-          setActiveItem(item);
-          setActivePrompt(null);
-          setActiveKanjiPrompt(null);
-          setActiveSentencePrompt(sentence);
-          setSessionError(null);
-          setAudioError(null);
-          setAnswer("");
-          setSubmission(null);
-
-          playListeningText(sentence.reading ?? sentence.japanese);
-          return;
-        }
-
         const prompt = await dataRepo.getVocabById(item.itemId);
 
         if (cancelled) {
@@ -370,7 +317,6 @@ function App() {
 
         setActiveItem(item);
         setActivePrompt(prompt);
-        setActiveKanjiPrompt(null);
         setActiveSentencePrompt(null);
         setSessionError(null);
         setAudioError(null);
@@ -378,7 +324,22 @@ function App() {
         setSubmission(null);
 
         if (item.module === "listening") {
-          if (item.promptType !== "sentence") {
+          if (item.promptType === "sentence") {
+            const sentence = await dataRepo.getSentenceById(item.itemId);
+
+            if (!sentence) {
+              throw new Error(
+                `Missing sentence item ${item.itemId} for listening prompt.`,
+              );
+            }
+
+            if (cancelled) {
+              return;
+            }
+
+            setActiveSentencePrompt(sentence);
+            playListeningText(sentence.reading ?? sentence.japanese);
+          } else {
             playListeningAudio(prompt);
           }
         }
@@ -903,133 +864,6 @@ function App() {
                       )}
                     </div>
                   )}
-
-                  {sessionStatus === "active" &&
-                    activeKanjiPrompt &&
-                    activeItem && (
-                      <div className="practice-card">
-                        <div className="practice-card__meta">
-                          <span>
-                            Item {activeIndex + 1} of {sessionPlan.items.length}
-                          </span>
-                          <span className="practice-badge">
-                            {activeItem.type}
-                          </span>
-                        </div>
-
-                        <p className="section-label">Learn kanji character</p>
-
-                        <div className="kanji-display">
-                          <div className="kanji-character">
-                            {activeKanjiPrompt.character}
-                          </div>
-                          <div className="kanji-info">
-                            <p className="kanji-meaning">
-                              Meaning: {activeKanjiPrompt.meaning}
-                            </p>
-                            <p className="kanji-strokes">
-                              Strokes: {activeKanjiPrompt.strokeSvgPaths.length}
-                            </p>
-                            <div className="kanji-readings">
-                              <p className="readings-label">Onyomi:</p>
-                              <p className="readings-text">
-                                {activeKanjiPrompt.onyomi.join("、")}
-                              </p>
-                              <p className="readings-label">Kunyomi:</p>
-                              <p className="readings-text">
-                                {activeKanjiPrompt.kunyomi.join("、")}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <svg
-                          className="kanji-stroke-viz"
-                          viewBox="0 0 40 40"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          {activeKanjiPrompt.strokeSvgPaths.map((path, idx) => (
-                            <path
-                              key={idx}
-                              d={path}
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              fill="none"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          ))}
-                        </svg>
-
-                        <form className="practice-form" onSubmit={handleSubmit}>
-                          <label
-                            className="practice-label"
-                            htmlFor="kanji-answer"
-                          >
-                            Type one onyomi reading (katakana)
-                          </label>
-                          <input
-                            id="kanji-answer"
-                            className="practice-input"
-                            value={answer}
-                            onChange={(event) => setAnswer(event.target.value)}
-                            placeholder="e.g., ニチ"
-                            autoComplete="off"
-                            disabled={submission !== null}
-                          />
-                          <button
-                            className="primary-button"
-                            type="submit"
-                            disabled={
-                              answer.trim().length === 0 || submission !== null
-                            }
-                          >
-                            Check answer
-                          </button>
-                        </form>
-
-                        {sessionError && (
-                          <p className="status-message status-message--error">
-                            {sessionError}
-                          </p>
-                        )}
-
-                        {submission && (
-                          <div className="feedback-panel">
-                            <p
-                              className={
-                                submission.attempt.result.isCorrect
-                                  ? "feedback-text feedback-text--correct"
-                                  : "feedback-text feedback-text--incorrect"
-                              }
-                            >
-                              {submission.attempt.result.isCorrect
-                                ? "Correct"
-                                : "Not quite"}
-                            </p>
-                            <p className="practice-hint">
-                              Expected onyomi:{" "}
-                              {submission.attempt.expectedAnswer}
-                            </p>
-                            <p className="practice-hint">
-                              Next review:{" "}
-                              {new Date(
-                                submission.reviewState.dueAt,
-                              ).toLocaleString()}
-                            </p>
-                            <button
-                              className="primary-button"
-                              type="button"
-                              onClick={handleNextItem}
-                            >
-                              {activeIndex + 1 >= sessionPlan.items.length
-                                ? "Finish session"
-                                : "Next item"}
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
                 </div>
               </section>
             )}
