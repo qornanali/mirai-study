@@ -3,6 +3,173 @@
   min-height: 100vh;
 }
 
+@keyframes mascot-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes mascot-bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(20px);
+  }
+  60% {
+    transform: scale(1.1) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes mascot-celebrate {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  20% {
+    transform: rotate(-12deg) scale(1.1);
+  }
+  40% {
+    transform: rotate(10deg) scale(1.15);
+  }
+  60% {
+    transform: rotate(-8deg) scale(1.1);
+  }
+  80% {
+    transform: rotate(6deg) scale(1.05);
+  }
+}
+
+@keyframes mascot-droop {
+  0% {
+    opacity: 0;
+    transform: rotate(-8deg) scale(0.9);
+  }
+  100% {
+    opacity: 0.75;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+.mascot {
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.mascot--idle {
+  animation: mascot-float 3.2s ease-in-out infinite;
+  display: block;
+  height: 110px;
+  margin: 0.4rem auto 0.8rem;
+  width: auto;
+}
+
+.mascot--kanji {
+  animation: mascot-float 2.8s ease-in-out infinite;
+  display: block;
+  height: 90px;
+  margin: 0 auto;
+  width: auto;
+}
+
+.mascot--listening {
+  animation: mascot-float 3.5s ease-in-out infinite;
+  display: block;
+  height: 100px;
+  margin: 0 auto 0.5rem;
+  width: auto;
+}
+
+.mascot--correct {
+  animation: mascot-bounce-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  display: block;
+  height: 100px;
+  margin: 0 auto 0.2rem;
+  width: auto;
+}
+
+.mascot--incorrect {
+  animation: mascot-droop 0.35s ease-out both;
+  display: block;
+  height: 85px;
+  margin: 0 auto 0.2rem;
+  opacity: 0.75;
+  width: auto;
+}
+
+.mascot--nurse {
+  animation: mascot-float 3.8s ease-in-out infinite;
+  height: 80px;
+  width: auto;
+}
+
+.mascot--loading {
+  animation: mascot-float 2.5s ease-in-out infinite;
+  display: block;
+  height: 100px;
+  margin: 0 auto 0.5rem;
+  width: auto;
+}
+
+.mascot--streak {
+  animation: mascot-celebrate 0.7s ease-in-out both;
+  display: block;
+  height: 90px;
+  margin: 0 auto;
+  width: auto;
+}
+
+.mascot--settings {
+  animation: mascot-float 4s ease-in-out infinite;
+  display: block;
+  height: 80px;
+  margin: 0 auto 0.5rem;
+  width: auto;
+}
+
+.streak-banner {
+  align-items: center;
+  background: linear-gradient(135deg, #fff5e4 0%, #ffe8d0 100%);
+  border: 2px solid #e8985a;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.5rem 0.8rem 0.4rem;
+  text-align: center;
+}
+
+.streak-count {
+  color: #c54a1a;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.streak-label {
+  color: #9d4020;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nurse-row {
+  align-items: center;
+  background: #fff5e8;
+  border: 1px solid #f0d2b5;
+  border-radius: 14px;
+  display: flex;
+  gap: 0.8rem;
+  padding: 0.6rem 0.9rem;
+}
+
 .app-shell {
   display: grid;
   gap: 1rem;
@@ -44,8 +211,16 @@
 
 .hero-panel {
   background:
-    radial-gradient(circle at 88% 14%, rgba(246, 217, 130, 0.36), transparent 28%),
-    radial-gradient(circle at 12% 82%, rgba(241, 153, 120, 0.23), transparent 34%),
+    radial-gradient(
+      circle at 88% 14%,
+      rgba(246, 217, 130, 0.36),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 12% 82%,
+      rgba(241, 153, 120, 0.23),
+      transparent 34%
+    ),
     linear-gradient(155deg, #fff7eb 0%, #ffeede 58%, #ffe4ca 100%);
   border: 1px solid #f2c3a2;
   border-radius: 26px;
@@ -67,6 +242,29 @@
   inset: 0;
   pointer-events: none;
   position: absolute;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-illustration {
+  bottom: 0;
+  height: 140px;
+  object-fit: contain;
+  pointer-events: none;
+  position: absolute;
+  right: 0.5rem;
+  width: auto;
+}
+
+.complete-illustration {
+  display: block;
+  height: 130px;
+  margin: 0.6rem auto;
+  object-fit: contain;
+  width: auto;
 }
 
 .eyebrow,
@@ -343,8 +541,7 @@
 .kanji-canvas {
   background:
     linear-gradient(90deg, rgba(183, 92, 66, 0.12) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(183, 92, 66, 0.12) 1px, transparent 1px),
-    #fff;
+    linear-gradient(180deg, rgba(183, 92, 66, 0.12) 1px, transparent 1px), #fff;
   background-size: 25% 25%;
   border: 2px solid #deb89b;
   border-radius: 10px;

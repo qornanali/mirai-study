@@ -31,11 +31,19 @@ export function HomeScreen({
       </header>
 
       <section className="hero-panel">
-        <p className="eyebrow">Offline-first Japanese study</p>
-        <h1>Renshuu</h1>
-        <p className="hero-copy">
-          Small daily drills. Calm rhythm. Better memory.
-        </p>
+        <div className="hero-content">
+          <p className="eyebrow">Offline-first Japanese study</p>
+          <h1>Renshuu</h1>
+          <p className="hero-copy">
+            Small daily drills. Calm rhythm. Better memory.
+          </p>
+        </div>
+        <img
+          src="/study_school_jugyou_boy.png"
+          alt="A student studying at a desk"
+          className="hero-illustration"
+          aria-hidden="true"
+        />
       </section>
 
       <section className="status-card" aria-live="polite">
@@ -91,6 +99,21 @@ export function HomeScreen({
             {sessionPlan && (
               <section className="queue-panel">
                 <p className="section-label">Today&apos;s queue</p>
+                {sessionPlan.dueCount > 0 && (
+                  <div className="nurse-row">
+                    <img
+                      src="/medical_nurse_pink.png"
+                      alt="Nurse with review reminder"
+                      className="mascot mascot--nurse"
+                      aria-hidden="true"
+                    />
+                    <p className="practice-hint">
+                      You have {sessionPlan.dueCount} review
+                      {sessionPlan.dueCount === 1 ? "" : "s"} due — keep up the
+                      pace!
+                    </p>
+                  </div>
+                )}
                 <div className="summary-grid">
                   <article>
                     <span className="summary-label">Planned items</span>

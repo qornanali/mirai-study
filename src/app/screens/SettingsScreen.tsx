@@ -63,6 +63,12 @@ export function SettingsScreen({
             <p className="section-label">Settings</p>
             <h2>Customize your study flow</h2>
           </div>
+          <img
+            src="/smart_phone_boy.png"
+            alt="Boy with smartphone"
+            className="mascot mascot--settings"
+            aria-hidden="true"
+          />
         </header>
 
         <section className="settings-panel">

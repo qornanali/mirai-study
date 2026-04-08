@@ -13,6 +13,35 @@ import type { IJapaneseDataRepo, IProgressRepo } from "../../data/contracts";
 import type { KanjiItem, SentenceItem, VocabItem } from "../../types";
 import { KanjiStrokeCanvas } from "./KanjiStrokeCanvas";
 
+const STUDY_MASCOTS = [
+  "/study_school_jugyou_boy.png",
+  "/study_benkyou_old_man.png",
+  "/study_benkyou_old_woman.png",
+];
+
+const GENKI_MASCOTS = [
+  "/genki_pose_schoolboy.png",
+  "/genki_pose_schoolgirl.png",
+];
+
+const KANJI_MASCOTS = [
+  "/eto_tora_kakizome.png",
+  "/eto_usagi_kakizome.png",
+  "/eto_ushi_kakizome.png",
+];
+
+const THINKING_MASCOTS = ["/fukidashi7_man.png", "/fukidashi8_woman.png"];
+
+const COMPLETE_MASCOTS = [
+  "/character_juken_tako_okuto_pass.png",
+  "/banzai_schoolboy2.png",
+  "/banzai_schoolgirl2.png",
+];
+
+function pickRandom<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)] as T;
+}
+
 export interface PracticeScreenProps {
   sessionPlan: DailySessionPlan | null;
   availableVoices: SpeechSynthesisVoice[];
@@ -53,6 +82,12 @@ export function PracticeScreen({
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [audioError, setAudioError] = useState<string | null>(null);
   const [promptLoading, setPromptLoading] = useState(false);
+  const [idleMascot] = useState(() => pickRandom(STUDY_MASCOTS));
+  const [genkiMascot] = useState(() => pickRandom(GENKI_MASCOTS));
+  const [kanjiMascot] = useState(() => pickRandom(KANJI_MASCOTS));
+  const [loadingMascot] = useState(() => pickRandom(THINKING_MASCOTS));
+  const [completeMascot] = useState(() => pickRandom(COMPLETE_MASCOTS));
+  const [correctStreak, setCorrectStreak] = useState(0);
 
   const isWritingPrompt = activeItem?.module === "writing";
   const isListeningPrompt = activeItem?.module === "listening";
@@ -276,6 +311,11 @@ export function PracticeScreen({
           (current?.correct ?? 0) + (result.attempt.result.isCorrect ? 1 : 0),
       }));
       setSessionError(null);
+      if (result.attempt.result.isCorrect) {
+        setCorrectStreak((prev) => prev + 1);
+      } else {
+        setCorrectStreak(0);
+      }
     } catch (error) {
       setSessionError(
         error instanceof Error ? error.message : "Failed to submit answer.",
@@ -292,6 +332,7 @@ export function PracticeScreen({
     setAudioError(null);
     setSubmission(null);
     kanaInput.reset();
+    setCorrectStreak(0);
   }
 
   async function handleNextItem() {
@@ -343,6 +384,12 @@ export function PracticeScreen({
         </header>
 
         <section className="status-card">
+          <img
+            src={idleMascot}
+            alt="Study mascot"
+            className="mascot mascot--idle"
+            aria-hidden="true"
+          />
           <div>
             <p className="section-label">Practice session</p>
             <h2>Ready to practice?</h2>
@@ -396,6 +443,12 @@ export function PracticeScreen({
         <section className="status-card">
           <p className="section-label">Session complete</p>
           <h2>Great work!</h2>
+          <img
+            src={completeMascot}
+            alt="Celebrating character"
+            className="complete-illustration"
+            aria-hidden="true"
+          />
           <div className="completion-panel">
             <p className="status-message">
               You answered {completedSessionSummary?.answered ?? 0} item
@@ -431,7 +484,13 @@ export function PracticeScreen({
         </header>
 
         <section className="status-card">
-          <p className="status-message">Loading...</p>
+          <img
+            src={loadingMascot}
+            alt="Thinking mascot"
+            className="mascot mascot--loading"
+            aria-hidden="true"
+          />
+          <p className="status-message">Loading next item...</p>
         </section>
       </main>
     );
@@ -478,6 +537,12 @@ export function PracticeScreen({
                   <p className="practice-hint">
                     Kanji meaning: {activeKanji.meaning}
                   </p>
+                  <img
+                    src={kanjiMascot}
+                    alt="Calligraphy mascot"
+                    className="mascot mascot--kanji"
+                    aria-hidden="true"
+                  />
                   <KanjiStrokeCanvas
                     character={activeKanji.character}
                     svgPaths={activeKanji.strokeSvgPaths}
@@ -500,6 +565,12 @@ export function PracticeScreen({
                 </>
               ) : isListeningPrompt ? (
                 <>
+                  <img
+                    src="/english_smartphone_honyakuki.png"
+                    alt="Listening prompt illustration"
+                    className="mascot mascot--listening"
+                    aria-hidden="true"
+                  />
                   <div className="practice-word">Audio prompt</div>
                   <p className="practice-hint">
                     Listen and type what you hear.
@@ -615,6 +686,39 @@ export function PracticeScreen({
 
               {submission && (
                 <div className="feedback-panel">
+                  <img
+                    src={
+                      submission.attempt.result.isCorrect
+                        ? genkiMascot
+                        : "/kandou_book_woman_sad.png"
+                    }
+                    alt={
+                      submission.attempt.result.isCorrect
+                        ? "Great job!"
+                        : "Review notes"
+                    }
+                    className={
+                      submission.attempt.result.isCorrect
+                        ? "mascot mascot--correct"
+                        : "mascot mascot--incorrect"
+                    }
+                    aria-hidden="true"
+                  />
+                  {submission.attempt.result.isCorrect &&
+                    correctStreak >= 3 && (
+                      <div className="streak-banner">
+                        <img
+                          src="/pose_hoppe_heart_schoolgirl.png"
+                          alt="Streak celebration"
+                          className="mascot mascot--streak"
+                          aria-hidden="true"
+                        />
+                        <span className="streak-count">
+                          {correctStreak}連続正解！
+                        </span>
+                        <span className="streak-label">Streak</span>
+                      </div>
+                    )}
                   <p
                     className={
                       submission.attempt.result.isCorrect
@@ -623,7 +727,7 @@ export function PracticeScreen({
                     }
                   >
                     {submission.attempt.result.isCorrect
-                      ? "Correct"
+                      ? "Correct!"
                       : "Not quite"}
                   </p>
                   <p className="practice-hint">
