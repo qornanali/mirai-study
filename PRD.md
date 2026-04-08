@@ -1,4 +1,4 @@
-# Renshuu Product Requirements Document
+# Mirai Study Product Requirements Document
 
 ## 1. Product Vision
 

@@ -407,7 +407,7 @@ function App() {
       <main className="app-shell">
         <section className="hero-panel">
           <p className="eyebrow">Offline-first Japanese study</p>
-          <h1>Renshuu</h1>
+          <h1>Mirai Study</h1>
         </section>
 
         <section className="status-card" aria-live="polite">
@@ -427,7 +427,7 @@ function App() {
       <main className="app-shell">
         <section className="hero-panel">
           <p className="eyebrow">Offline-first Japanese study</p>
-          <h1>Renshuu</h1>
+          <h1>Mirai Study</h1>
         </section>
 
         <section className="status-card" aria-live="polite">

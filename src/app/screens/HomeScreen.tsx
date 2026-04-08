@@ -30,7 +30,7 @@ export function HomeScreen({
   return (
     <main className="app-shell">
       <header className="app-topbar">
-        <p className="app-brand">練習 Renshuu</p>
+        <p className="app-brand">練習 Mirai Study</p>
         <button
           className="icon-button"
           type="button"
@@ -44,7 +44,7 @@ export function HomeScreen({
       <section className="hero-panel">
         <div className="hero-content">
           <p className="eyebrow">Offline-first Japanese study</p>
-          <h1>Renshuu</h1>
+          <h1>Mirai Study</h1>
           <p className="hero-copy">
             Small daily drills. Calm rhythm. Better memory.
           </p>

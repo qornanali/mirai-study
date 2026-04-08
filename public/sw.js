@@ -1,5 +1,5 @@
 /**
- * Renshuu Service Worker
+ * Mirai Study Service Worker
  *
  * Caching strategy:
  *  - HTML navigation  → network-first (always get latest index.html without manual cache bumps)
@@ -12,8 +12,8 @@
  *  - App shows a "new version" banner so the user can reload
  */
 
-const ASSETS_CACHE = "renshuu-assets";
-const SHELL_CACHE = "renshuu-shell";
+const ASSETS_CACHE = "mirai-study-assets";
+const SHELL_CACHE = "mirai-study-shell";
 
 const STATIC_SHELL = ["/manifest.webmanifest", "/favicon.svg", "/icons.svg"];
 

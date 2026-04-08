@@ -1,6 +1,6 @@
 {
-  "name": "Renshuu",
-  "short_name": "Renshuu",
+  "name": "Mirai Study",
+  "short_name": "Mirai",
   "description": "Offline-first Japanese learning app",
   "start_url": "/",
   "display": "standalone",
