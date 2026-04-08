@@ -70,4 +70,52 @@ describe("useKanaInput", () => {
 
     expect(result.current.value).toBe("ね");
   });
+
+  it("converts romaji to katakana in katakana mode", () => {
+    const { result } = renderHook(() =>
+      useKanaInput("", { keyboardMode: "katakana", autoScript: "hiragana" }),
+    );
+
+    act(() => {
+      result.current.onChange({
+        target: { value: "neko" },
+      } as React.ChangeEvent<HTMLInputElement>);
+    });
+
+    expect(result.current.value).toBe("ネコ");
+  });
+
+  it("uses autoScript when keyboard mode is auto", () => {
+    const initialProps: { autoScript: "hiragana" | "katakana" } = {
+      autoScript: "katakana",
+    };
+
+    const { result, rerender } = renderHook(
+      ({ autoScript }: { autoScript: "hiragana" | "katakana" }) =>
+        useKanaInput("", { keyboardMode: "auto", autoScript }),
+      { initialProps },
+    );
+
+    act(() => {
+      result.current.onChange({
+        target: { value: "kohi" },
+      } as React.ChangeEvent<HTMLInputElement>);
+    });
+
+    expect(result.current.value).toBe("コヒ");
+
+    act(() => {
+      result.current.reset();
+    });
+
+    rerender({ autoScript: "hiragana" });
+
+    act(() => {
+      result.current.onChange({
+        target: { value: "kohi" },
+      } as React.ChangeEvent<HTMLInputElement>);
+    });
+
+    expect(result.current.value).toBe("こひ");
+  });
 });

@@ -4,6 +4,8 @@ import {
   selectVoiceForJapanesePlayback,
   submitSessionAnswer,
   useKanaInput,
+  type KanaKeyboardMode,
+  type KanaScript,
   type DailySessionPlan,
   type SessionAnswerResult,
   type SessionQueueItem,
@@ -48,6 +50,18 @@ const COMPLETE_MASCOTS = [
 
 function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)] as T;
+}
+
+function isPureKatakana(text: string): boolean {
+  return /^[\u30a0-\u30ffー]+$/u.test(text);
+}
+
+function inferAutoKanaScript(text: string | undefined): KanaScript {
+  if (!text) {
+    return "hiragana";
+  }
+
+  return isPureKatakana(text) ? "katakana" : "hiragana";
 }
 
 export interface PracticeScreenProps {
@@ -105,7 +119,8 @@ export function PracticeScreen({
     useState<SentenceItem | null>(null);
   const [activeKanji, setActiveKanji] = useState<KanjiItem | null>(null);
   const [kanjiStrokes, setKanjiStrokes] = useState<StrokePath[]>([]);
-  const kanaInput = useKanaInput();
+  const [kanaKeyboardMode, setKanaKeyboardMode] =
+    useState<KanaKeyboardMode>("auto");
   const [submission, setSubmission] = useState<SessionAnswerResult | null>(
     null,
   );
@@ -127,6 +142,17 @@ export function PracticeScreen({
   const isListeningPrompt = activeItem?.module === "listening";
   const isKanjiPrompt = activeItem?.module === "kanji";
   const isSentencePrompt = activeItem?.promptType === "sentence";
+  const autoScript = inferAutoKanaScript(
+    isSentencePrompt
+      ? (activeSentencePrompt?.reading ?? activeSentencePrompt?.japanese)
+      : isWritingPrompt
+        ? activePrompt?.japanese
+        : (activePrompt?.reading ?? activePrompt?.japanese),
+  );
+  const kanaInput = useKanaInput("", {
+    keyboardMode: kanaKeyboardMode,
+    autoScript,
+  });
 
   const playListeningAudio = useCallback(
     (prompt: VocabItem) => {
@@ -822,6 +848,30 @@ export function PracticeScreen({
                     <label className="practice-label" htmlFor="reading-answer">
                       Your answer
                     </label>
+                    <label
+                      className="practice-label"
+                      htmlFor="kana-keyboard-mode"
+                    >
+                      Kana keyboard
+                    </label>
+                    <select
+                      id="kana-keyboard-mode"
+                      className="settings-select"
+                      value={kanaKeyboardMode}
+                      onChange={(event) => {
+                        setKanaKeyboardMode(
+                          event.target.value as KanaKeyboardMode,
+                        );
+                      }}
+                      disabled={submission !== null}
+                    >
+                      <option value="auto">
+                        Auto (
+                        {autoScript === "katakana" ? "Katakana" : "Hiragana"})
+                      </option>
+                      <option value="hiragana">Hiragana</option>
+                      <option value="katakana">Katakana</option>
+                    </select>
                     <input
                       id="reading-answer"
                       className="practice-input"

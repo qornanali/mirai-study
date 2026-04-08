@@ -1,5 +1,13 @@
 import { useCallback, useState } from "react";
-import { toKana } from "wanakana";
+import { toKana, toKatakana } from "wanakana";
+
+export type KanaKeyboardMode = "auto" | "hiragana" | "katakana";
+export type KanaScript = "hiragana" | "katakana";
+
+export interface UseKanaInputOptions {
+  keyboardMode?: KanaKeyboardMode;
+  autoScript?: KanaScript;
+}
 
 export interface KanaInputState {
   value: string;
@@ -7,13 +15,25 @@ export interface KanaInputState {
   reset: () => void;
 }
 
-export function useKanaInput(initialValue = ""): KanaInputState {
+export function useKanaInput(
+  initialValue = "",
+  options?: UseKanaInputOptions,
+): KanaInputState {
   const [value, setValue] = useState(initialValue);
+  const keyboardMode = options?.keyboardMode ?? "auto";
+  const autoScript = options?.autoScript ?? "hiragana";
 
-  const onChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const converted = toKana(event.target.value, { IMEMode: true });
-    setValue(converted);
-  }, []);
+  const onChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const resolvedMode = keyboardMode === "auto" ? autoScript : keyboardMode;
+      const converted =
+        resolvedMode === "katakana"
+          ? toKatakana(event.target.value, { IMEMode: true })
+          : toKana(event.target.value, { IMEMode: true });
+      setValue(converted);
+    },
+    [autoScript, keyboardMode],
+  );
 
   const reset = useCallback(() => setValue(""), []);
 
