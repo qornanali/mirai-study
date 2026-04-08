@@ -14,6 +14,13 @@ import {
   DexieProgressRepo,
   DexieSettingsRepo,
 } from "./data/dexie";
+import type {
+  DailyGoals,
+  ListeningFocus,
+  PracticeMode,
+  ReadingFocus,
+  WritingFocus,
+} from "./data/contracts";
 import "./App.css";
 
 type AppStatus = "loading" | "ready" | "error";
@@ -39,7 +46,10 @@ let appReadyPromise: Promise<{
   sessionPlan: DailySessionPlan;
 }> | null = null;
 
-async function loadLatestSessionPlan(nowIso: string) {
+async function loadLatestSessionPlan(
+  nowIso: string,
+  overrideMode?: PracticeMode,
+) {
   return buildDailySession(
     {
       dataRepo,
@@ -48,6 +58,7 @@ async function loadLatestSessionPlan(nowIso: string) {
     },
     {
       nowIso,
+      overrideMode,
     },
   );
 }
@@ -65,6 +76,20 @@ function App() {
   const [voicePreference, setVoicePreference] = useState<string | undefined>();
   const [isSavingVoicePreference, setIsSavingVoicePreference] = useState(false);
   const [furiganaEnabled, setFuriganaEnabled] = useState(true);
+  const [practiceMode, setPracticeMode] = useState<PracticeMode>("streak");
+  const [listeningFocus, setListeningFocus] = useState<ListeningFocus>("word");
+  const [readingFocus, setReadingFocus] = useState<ReadingFocus>("word");
+  const [writingFocus, setWritingFocus] = useState<WritingFocus>("hiragana");
+  const [dailyGoals, setDailyGoals] = useState<DailyGoals>({
+    listening: 10,
+    reading: 10,
+    writing: 10,
+  });
+  const [dailyProgress, setDailyProgress] = useState({
+    listening: 0,
+    reading: 0,
+    writing: 0,
+  });
   const [isSavingFuriganaPreference, setIsSavingFuriganaPreference] =
     useState(false);
   const [settingsError, setSettingsError] = useState<string | null>(null);
@@ -98,8 +123,22 @@ function App() {
 
         setBootstrapResult(result);
         setSessionPlan(plannedSession);
+        const todayProgress = await progressRepo.getDailyModuleAttempts(
+          new Date().toISOString(),
+        );
+
         setVoicePreference(settings.voicePreference);
         setFuriganaEnabled(settings.furiganaEnabled ?? true);
+        setPracticeMode(settings.practiceMode);
+        setListeningFocus(settings.listeningFocus);
+        setReadingFocus(settings.readingFocus);
+        setWritingFocus(settings.writingFocus);
+        setDailyGoals(settings.dailyGoals);
+        setDailyProgress({
+          listening: todayProgress.listening,
+          reading: todayProgress.reading,
+          writing: todayProgress.writing,
+        });
         setStatus("ready");
       } catch (error) {
         if (cancelled) {
@@ -248,12 +287,17 @@ function App() {
     setSettingsError(null);
 
     try {
+      const nowIso = new Date().toISOString();
       const result = await refreshAppData(db);
-      const plannedSession = await loadLatestSessionPlan(
-        new Date().toISOString(),
-      );
+      const plannedSession = await loadLatestSessionPlan(nowIso, practiceMode);
+      const todayProgress = await progressRepo.getDailyModuleAttempts(nowIso);
       setBootstrapResult(result);
       setSessionPlan(plannedSession);
+      setDailyProgress({
+        listening: todayProgress.listening,
+        reading: todayProgress.reading,
+        writing: todayProgress.writing,
+      });
       appReadyPromise = null;
       bootstrapPromise = null;
     } catch (error) {
@@ -265,6 +309,97 @@ function App() {
     } finally {
       setIsRefreshingSeed(false);
     }
+  }
+
+  async function handlePracticeModeChange(nextMode: PracticeMode) {
+    setSettingsError(null);
+
+    try {
+      const updated = await settingsRepo.updateSettings({
+        practiceMode: nextMode,
+      });
+      const nowIso = new Date().toISOString();
+      const plannedSession = await loadLatestSessionPlan(nowIso, nextMode);
+      const todayProgress = await progressRepo.getDailyModuleAttempts(nowIso);
+      setPracticeMode(updated.practiceMode);
+      setListeningFocus(updated.listeningFocus);
+      setReadingFocus(updated.readingFocus);
+      setWritingFocus(updated.writingFocus);
+      setDailyGoals(updated.dailyGoals);
+      setSessionPlan(plannedSession);
+      setDailyProgress({
+        listening: todayProgress.listening,
+        reading: todayProgress.reading,
+        writing: todayProgress.writing,
+      });
+    } catch (error) {
+      setSettingsError(
+        error instanceof Error
+          ? error.message
+          : "Failed to update practice mode.",
+      );
+    }
+  }
+
+  async function handlePracticeFiltersChange(input: {
+    listeningFocus?: ListeningFocus;
+    readingFocus?: ReadingFocus;
+    writingFocus?: WritingFocus;
+  }) {
+    setSettingsError(null);
+
+    try {
+      const updated = await settingsRepo.updateSettings(input);
+      const nowIso = new Date().toISOString();
+      const plannedSession = await loadLatestSessionPlan(
+        nowIso,
+        updated.practiceMode,
+      );
+      setPracticeMode(updated.practiceMode);
+      setListeningFocus(updated.listeningFocus);
+      setReadingFocus(updated.readingFocus);
+      setWritingFocus(updated.writingFocus);
+      setDailyGoals(updated.dailyGoals);
+      setSessionPlan(plannedSession);
+    } catch (error) {
+      setSettingsError(
+        error instanceof Error
+          ? error.message
+          : "Failed to update practice filters.",
+      );
+    }
+  }
+
+  async function handleDailyGoalsChange(nextGoals: DailyGoals) {
+    setSettingsError(null);
+
+    try {
+      const sanitizedGoals: DailyGoals = {
+        listening: Math.max(1, Math.min(300, Math.round(nextGoals.listening))),
+        reading: Math.max(1, Math.min(300, Math.round(nextGoals.reading))),
+        writing: Math.max(1, Math.min(300, Math.round(nextGoals.writing))),
+      };
+      const updated = await settingsRepo.updateSettings({
+        dailyGoals: sanitizedGoals,
+      });
+      setDailyGoals(updated.dailyGoals);
+    } catch (error) {
+      setSettingsError(
+        error instanceof Error
+          ? error.message
+          : "Failed to update daily goals.",
+      );
+    }
+  }
+
+  async function handleSessionProgressUpdate() {
+    const nowIso = new Date().toISOString();
+    const todayProgress = await progressRepo.getDailyModuleAttempts(nowIso);
+    setDailyProgress({
+      listening: todayProgress.listening,
+      reading: todayProgress.reading,
+      writing: todayProgress.writing,
+    });
   }
 
   if (status === "loading") {
@@ -333,6 +468,9 @@ function App() {
         <HomeScreen
           bootstrapResult={bootstrapResult}
           sessionPlan={sessionPlan}
+          practiceMode={practiceMode}
+          dailyGoals={dailyGoals}
+          dailyProgress={dailyProgress}
           onNavigateToSettings={() => setCurrentScreen("settings")}
           onNavigateToPractice={() => setCurrentScreen("practice")}
         />
@@ -341,11 +479,20 @@ function App() {
       {currentScreen === "practice" && (
         <PracticeScreen
           sessionPlan={sessionPlan}
+          practiceMode={practiceMode}
+          listeningFocus={listeningFocus}
+          readingFocus={readingFocus}
+          writingFocus={writingFocus}
+          dailyGoals={dailyGoals}
+          dailyProgress={dailyProgress}
           availableVoices={availableVoices}
           voicePreference={voicePreference}
           furiganaEnabled={furiganaEnabled}
           dataRepo={dataRepo}
           progressRepo={progressRepo}
+          onPracticeModeChange={handlePracticeModeChange}
+          onPracticeFiltersChange={handlePracticeFiltersChange}
+          onSessionProgressUpdate={handleSessionProgressUpdate}
           onNavigateToHome={() => setCurrentScreen("home")}
         />
       )}
@@ -356,6 +503,12 @@ function App() {
           availableVoices={availableVoices}
           voicePreference={voicePreference}
           furiganaEnabled={furiganaEnabled}
+          practiceMode={practiceMode}
+          listeningFocus={listeningFocus}
+          readingFocus={readingFocus}
+          writingFocus={writingFocus}
+          dailyGoals={dailyGoals}
+          dailyProgress={dailyProgress}
           isAppInstalled={isAppInstalled}
           installPromptEvent={installPromptEvent}
           isInstallingApp={isInstallingApp}
@@ -368,6 +521,9 @@ function App() {
           onRefreshSeed={handleRefreshSeed}
           onVoicePreferenceChange={handleVoicePreferenceChange}
           onFuriganaPreferenceChange={handleFuriganaPreferenceChange}
+          onPracticeModeChange={handlePracticeModeChange}
+          onPracticeFiltersChange={handlePracticeFiltersChange}
+          onDailyGoalsChange={handleDailyGoalsChange}
           onNavigateToHome={() => setCurrentScreen("home")}
         />
       )}

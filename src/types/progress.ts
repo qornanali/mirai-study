@@ -32,3 +32,10 @@ export interface ProgressRecord {
   reviewState: ReviewState;
   userProgress: UserProgress;
 }
+
+export interface DailyModuleAttempts {
+  date: string;
+  listening: number;
+  reading: number;
+  writing: number;
+}

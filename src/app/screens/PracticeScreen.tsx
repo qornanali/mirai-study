@@ -9,7 +9,15 @@ import {
   type SessionQueueItem,
   type StrokePath,
 } from "../../app/session";
-import type { IJapaneseDataRepo, IProgressRepo } from "../../data/contracts";
+import type {
+  DailyGoals,
+  IJapaneseDataRepo,
+  IProgressRepo,
+  ListeningFocus,
+  PracticeMode,
+  ReadingFocus,
+  WritingFocus,
+} from "../../data/contracts";
 import type { KanjiItem, SentenceItem, VocabItem } from "../../types";
 import { KanjiStrokeCanvas } from "./KanjiStrokeCanvas";
 
@@ -44,21 +52,47 @@ function pickRandom<T>(arr: T[]): T {
 
 export interface PracticeScreenProps {
   sessionPlan: DailySessionPlan | null;
+  practiceMode: PracticeMode;
+  listeningFocus: ListeningFocus;
+  readingFocus: ReadingFocus;
+  writingFocus: WritingFocus;
+  dailyGoals: DailyGoals;
+  dailyProgress: {
+    listening: number;
+    reading: number;
+    writing: number;
+  };
   availableVoices: SpeechSynthesisVoice[];
   voicePreference: string | undefined;
   furiganaEnabled: boolean;
   dataRepo: IJapaneseDataRepo;
   progressRepo: IProgressRepo;
+  onPracticeModeChange: (mode: PracticeMode) => Promise<void>;
+  onPracticeFiltersChange: (input: {
+    listeningFocus?: ListeningFocus;
+    readingFocus?: ReadingFocus;
+    writingFocus?: WritingFocus;
+  }) => Promise<void>;
+  onSessionProgressUpdate: () => Promise<void>;
   onNavigateToHome: () => void;
 }
 
 export function PracticeScreen({
   sessionPlan,
+  practiceMode,
+  listeningFocus,
+  readingFocus,
+  writingFocus,
+  dailyGoals,
+  dailyProgress,
   availableVoices,
   voicePreference,
   furiganaEnabled,
   dataRepo,
   progressRepo,
+  onPracticeModeChange,
+  onPracticeFiltersChange,
+  onSessionProgressUpdate,
   onNavigateToHome,
 }: PracticeScreenProps) {
   const [sessionStatus, setSessionStatus] = useState<
@@ -92,6 +126,7 @@ export function PracticeScreen({
   const isWritingPrompt = activeItem?.module === "writing";
   const isListeningPrompt = activeItem?.module === "listening";
   const isKanjiPrompt = activeItem?.module === "kanji";
+  const isSentencePrompt = activeItem?.promptType === "sentence";
 
   const playListeningAudio = useCallback(
     (prompt: VocabItem) => {
@@ -316,6 +351,7 @@ export function PracticeScreen({
       } else {
         setCorrectStreak(0);
       }
+      await onSessionProgressUpdate();
     } catch (error) {
       setSessionError(
         error instanceof Error ? error.message : "Failed to submit answer.",
@@ -343,6 +379,11 @@ export function PracticeScreen({
     const nextIndex = activeIndex + 1;
 
     if (nextIndex >= sessionPlan.items.length) {
+      if (practiceMode === "streak") {
+        setActiveIndex(0);
+        return;
+      }
+
       setSessionStatus("complete");
       setActiveItem(null);
       setActivePrompt(null);
@@ -397,8 +438,125 @@ export function PracticeScreen({
           <p className="status-message">
             {!sessionPlan
               ? "Session plan is loading..."
-              : "Start a session to begin studying."}
+              : "Choose your mode and start learning."}
           </p>
+
+          <div className="settings-panel">
+            <div className="voice-panel">
+              <p className="section-label">Session mode</p>
+              <label className="settings-label" htmlFor="practice-mode-select">
+                Practice type
+              </label>
+              <select
+                id="practice-mode-select"
+                className="settings-select"
+                value={practiceMode}
+                onChange={(event) => {
+                  void onPracticeModeChange(event.target.value as PracticeMode);
+                }}
+              >
+                <option value="streak">Never ending streak</option>
+                <option value="listening">Listening only</option>
+                <option value="reading">Reading only</option>
+                <option value="writing">Writing only</option>
+              </select>
+            </div>
+
+            {practiceMode === "listening" && (
+              <div className="voice-panel">
+                <label
+                  className="settings-label"
+                  htmlFor="listening-focus-select"
+                >
+                  Listening focus
+                </label>
+                <select
+                  id="listening-focus-select"
+                  className="settings-select"
+                  value={listeningFocus}
+                  onChange={(event) => {
+                    void onPracticeFiltersChange({
+                      listeningFocus: event.target.value as ListeningFocus,
+                    });
+                  }}
+                >
+                  <option value="sentence">Sentence</option>
+                  <option value="word">Word</option>
+                </select>
+              </div>
+            )}
+
+            {practiceMode === "reading" && (
+              <div className="voice-panel">
+                <label
+                  className="settings-label"
+                  htmlFor="reading-focus-select"
+                >
+                  Reading focus
+                </label>
+                <select
+                  id="reading-focus-select"
+                  className="settings-select"
+                  value={readingFocus}
+                  onChange={(event) => {
+                    void onPracticeFiltersChange({
+                      readingFocus: event.target.value as ReadingFocus,
+                    });
+                  }}
+                >
+                  <option value="sentence">Sentence</option>
+                  <option value="word">Word</option>
+                </select>
+              </div>
+            )}
+
+            {practiceMode === "writing" && (
+              <div className="voice-panel">
+                <label
+                  className="settings-label"
+                  htmlFor="writing-focus-select"
+                >
+                  Writing focus
+                </label>
+                <select
+                  id="writing-focus-select"
+                  className="settings-select"
+                  value={writingFocus}
+                  onChange={(event) => {
+                    void onPracticeFiltersChange({
+                      writingFocus: event.target.value as WritingFocus,
+                    });
+                  }}
+                >
+                  <option value="hiragana">Hiragana only</option>
+                  <option value="katakana">Katakana only</option>
+                  <option value="kanji">Kanji stroke</option>
+                </select>
+              </div>
+            )}
+
+            <div className="summary-grid">
+              <article>
+                <span className="summary-label">Listening goal</span>
+                <strong>
+                  {dailyProgress.listening}/{dailyGoals.listening}
+                </strong>
+              </article>
+              <article>
+                <span className="summary-label">Reading goal</span>
+                <strong>
+                  {dailyProgress.reading}/{dailyGoals.reading}
+                </strong>
+              </article>
+              <article>
+                <span className="summary-label">Writing goal</span>
+                <strong>
+                  {dailyProgress.writing}/{dailyGoals.writing}
+                </strong>
+              </article>
+            </div>
+          </div>
+
           {sessionPlan && (
             <>
               <button
@@ -409,7 +567,9 @@ export function PracticeScreen({
               >
                 {sessionPlan.items.length === 0
                   ? "No items available"
-                  : "Start session"}
+                  : practiceMode === "streak"
+                    ? "Start streak"
+                    : "Start session"}
               </button>
               <button
                 className="secondary-button"
@@ -529,7 +689,9 @@ export function PracticeScreen({
                     ? "Write the Japanese answer"
                     : isListeningPrompt
                       ? "Transcribe the dictation"
-                      : "Type the kana reading"}
+                      : isSentencePrompt
+                        ? "Type the sentence reading"
+                        : "Type the kana reading"}
               </p>
               {isKanjiPrompt && activeKanji ? (
                 <>
@@ -549,6 +711,22 @@ export function PracticeScreen({
                     onStrokesChange={setKanjiStrokes}
                     disabled={submission !== null}
                   />
+                </>
+              ) : isSentencePrompt &&
+                activeSentencePrompt &&
+                !isListeningPrompt ? (
+                <>
+                  <div className="practice-word">
+                    {activeSentencePrompt.japanese}
+                  </div>
+                  <p className="practice-hint">
+                    Sentence meaning: {activeSentencePrompt.english}
+                  </p>
+                  {furiganaEnabled && activeSentencePrompt.reading && (
+                    <p className="practice-hint">
+                      Hint reading: {activeSentencePrompt.reading}
+                    </p>
+                  )}
                 </>
               ) : isWritingPrompt ? (
                 <>

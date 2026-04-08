@@ -1,6 +1,7 @@
 import type { IProgressRepo } from "../contracts";
 import { createProgressId } from "../../types";
 import type {
+  DailyModuleAttempts,
   ProgressRecord,
   ProgressSnapshot,
   ReviewState,
@@ -116,5 +117,43 @@ export class DexieProgressRepo implements IProgressRepo {
     };
 
     return progressSnapshotSchema.parse(snapshot);
+  }
+
+  async getDailyModuleAttempts(nowIso: string): Promise<DailyModuleAttempts> {
+    const now = new Date(nowIso);
+    const dayStart = new Date(now);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(dayStart);
+    dayEnd.setDate(dayEnd.getDate() + 1);
+
+    const todayAttempts = await this.database.attempts
+      .where("createdAt")
+      .between(dayStart.toISOString(), dayEnd.toISOString(), true, false)
+      .toArray();
+
+    const counts = {
+      listening: 0,
+      reading: 0,
+      writing: 0,
+    };
+
+    for (const attempt of todayAttempts) {
+      if (attempt.module === "listening") {
+        counts.listening += 1;
+      }
+
+      if (attempt.module === "reading") {
+        counts.reading += 1;
+      }
+
+      if (attempt.module === "writing" || attempt.module === "kanji") {
+        counts.writing += 1;
+      }
+    }
+
+    return {
+      date: dayStart.toISOString().slice(0, 10),
+      ...counts,
+    };
   }
 }

@@ -1,9 +1,17 @@
 import type { AppBootstrapResult } from "../../app/bootstrap";
 import type { DailySessionPlan } from "../../app/session";
+import type { DailyGoals, PracticeMode } from "../../data/contracts";
 
 export interface HomeScreenProps {
   bootstrapResult: AppBootstrapResult | null;
   sessionPlan: DailySessionPlan | null;
+  practiceMode: PracticeMode;
+  dailyGoals: DailyGoals;
+  dailyProgress: {
+    listening: number;
+    reading: number;
+    writing: number;
+  };
   onNavigateToSettings: () => void;
   onNavigateToPractice: () => void;
 }
@@ -11,6 +19,9 @@ export interface HomeScreenProps {
 export function HomeScreen({
   bootstrapResult,
   sessionPlan,
+  practiceMode,
+  dailyGoals,
+  dailyProgress,
   onNavigateToSettings,
   onNavigateToPractice,
 }: HomeScreenProps) {
@@ -130,6 +141,34 @@ export function HomeScreen({
                 </div>
               </section>
             )}
+
+            <section className="queue-panel">
+              <p className="section-label">Today&apos;s progress</p>
+              <p className="practice-hint">
+                Mode: <strong>{practiceMode}</strong> • Reach daily goals to
+                stay on track.
+              </p>
+              <div className="summary-grid">
+                <article>
+                  <span className="summary-label">Listening</span>
+                  <strong>
+                    {dailyProgress.listening}/{dailyGoals.listening}
+                  </strong>
+                </article>
+                <article>
+                  <span className="summary-label">Reading</span>
+                  <strong>
+                    {dailyProgress.reading}/{dailyGoals.reading}
+                  </strong>
+                </article>
+                <article>
+                  <span className="summary-label">Writing</span>
+                  <strong>
+                    {dailyProgress.writing}/{dailyGoals.writing}
+                  </strong>
+                </article>
+              </div>
+            </section>
           </>
         )}
       </section>

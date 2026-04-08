@@ -101,6 +101,18 @@ export async function submitSessionAnswer(
       actual: input.userAnswer,
       promptType: "sentence",
     });
+  } else if (
+    input.item.module === "reading" &&
+    input.item.promptType === "sentence"
+  ) {
+    const sentence = await deps.dataRepo.getSentenceById(input.item.itemId);
+
+    if (!sentence) {
+      throw new Error(`Missing sentence item ${input.item.itemId}.`);
+    }
+
+    resolvedExpectedAnswer = sentence.reading ?? sentence.japanese;
+    result = gradeReadingAnswer(resolvedExpectedAnswer, input.userAnswer);
   } else {
     const vocab = await deps.dataRepo.getVocabById(input.item.itemId);
 

@@ -138,6 +138,17 @@ class FakeProgressRepo implements IProgressRepo {
       },
     };
   }
+
+  async getDailyModuleAttempts(): Promise<
+    import("../../types").DailyModuleAttempts
+  > {
+    return {
+      date: "2026-04-07",
+      listening: 0,
+      reading: 0,
+      writing: 0,
+    };
+  }
 }
 
 describe("submitSessionAnswer", () => {

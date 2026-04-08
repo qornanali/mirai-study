@@ -7,6 +7,15 @@ const DEFAULT_SETTINGS: UserSettings = {
   ttsRate: 1,
   ttsPitch: 1,
   furiganaEnabled: true,
+  practiceMode: "streak",
+  listeningFocus: "word",
+  readingFocus: "word",
+  writingFocus: "hiragana",
+  dailyGoals: {
+    listening: 10,
+    reading: 10,
+    writing: 10,
+  },
 };
 
 function toUserSettings(settings: StoredSettings | undefined): UserSettings {
@@ -21,6 +30,18 @@ function toUserSettings(settings: StoredSettings | undefined): UserSettings {
     ttsPitch: settings.ttsPitch ?? DEFAULT_SETTINGS.ttsPitch,
     furiganaEnabled:
       settings.furiganaEnabled ?? DEFAULT_SETTINGS.furiganaEnabled,
+    practiceMode: settings.practiceMode ?? DEFAULT_SETTINGS.practiceMode,
+    listeningFocus: settings.listeningFocus ?? DEFAULT_SETTINGS.listeningFocus,
+    readingFocus: settings.readingFocus ?? DEFAULT_SETTINGS.readingFocus,
+    writingFocus: settings.writingFocus ?? DEFAULT_SETTINGS.writingFocus,
+    dailyGoals: {
+      listening:
+        settings.dailyGoals?.listening ?? DEFAULT_SETTINGS.dailyGoals.listening,
+      reading:
+        settings.dailyGoals?.reading ?? DEFAULT_SETTINGS.dailyGoals.reading,
+      writing:
+        settings.dailyGoals?.writing ?? DEFAULT_SETTINGS.dailyGoals.writing,
+    },
   };
 
   if (settings.voicePreference) {
@@ -52,6 +73,16 @@ export class DexieSettingsRepo implements ISettingsRepo {
       )
         ? settings.furiganaEnabled
         : current.furiganaEnabled,
+      practiceMode: settings.practiceMode ?? current.practiceMode,
+      listeningFocus: settings.listeningFocus ?? current.listeningFocus,
+      readingFocus: settings.readingFocus ?? current.readingFocus,
+      writingFocus: settings.writingFocus ?? current.writingFocus,
+      dailyGoals: {
+        listening:
+          settings.dailyGoals?.listening ?? current.dailyGoals.listening,
+        reading: settings.dailyGoals?.reading ?? current.dailyGoals.reading,
+        writing: settings.dailyGoals?.writing ?? current.dailyGoals.writing,
+      },
     };
 
     const hasVoicePreferenceUpdate = Object.prototype.hasOwnProperty.call(

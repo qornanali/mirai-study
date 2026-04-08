@@ -1,5 +1,6 @@
 import type { StudyModule } from "../../types";
 import type {
+  DailyModuleAttempts,
   ProgressRecord,
   ProgressSnapshot,
   ReviewState,
@@ -23,4 +24,5 @@ export interface IProgressRepo {
   ): Promise<UserProgress | null>;
   getDueReviews(nowIso: string, limit: number): Promise<ReviewState[]>;
   getSnapshot(): Promise<ProgressSnapshot>;
+  getDailyModuleAttempts(nowIso: string): Promise<DailyModuleAttempts>;
 }
