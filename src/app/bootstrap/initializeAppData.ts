@@ -1,6 +1,9 @@
 import type { RenshuuDexieDatabase } from "../../data/dexie";
 import { ingestSeedData } from "../../data/seeding/ingestSeedData";
 import { starterN5Seed } from "../../data/seeding/starterN5Seed";
+import { jlptN4Seed } from "../../data/seeding/jlptN4Seed";
+import { jlptN3Seed } from "../../data/seeding/jlptN3Seed";
+import { RemoteDataFetcher } from "../../data/seeding/remoteDataFetcher";
 
 export interface AppContentSummary {
   vocab: number;
@@ -36,11 +39,28 @@ export async function initializeAppData(
     currentSummary.sentences > 0;
 
   if (!hasSeedData) {
+    const enrichedPack = await RemoteDataFetcher.buildEnrichedN5N3Curriculum();
+
+    if (enrichedPack && enrichedPack.vocab.length > 50) {
+      await ingestSeedData(database, enrichedPack);
+      await ingestSeedData(database, starterN5Seed);
+      await ingestSeedData(database, jlptN4Seed);
+      await ingestSeedData(database, jlptN3Seed);
+
+      return {
+        seeded: true,
+        seedPackId: `${enrichedPack.id} (Jisho.org + local)`,
+        summary: await getContentSummary(database),
+      };
+    }
+
     await ingestSeedData(database, starterN5Seed);
+    await ingestSeedData(database, jlptN4Seed);
+    await ingestSeedData(database, jlptN3Seed);
 
     return {
       seeded: true,
-      seedPackId: starterN5Seed.id,
+      seedPackId: `${starterN5Seed.id}+${jlptN4Seed.id}+${jlptN3Seed.id} (local)`,
       summary: await getContentSummary(database),
     };
   }

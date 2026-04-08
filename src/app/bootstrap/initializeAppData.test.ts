@@ -19,17 +19,19 @@ describe("initializeAppData", () => {
     await database.delete();
   });
 
-  it("seeds starter content when the database is empty", async () => {
-    const result = await initializeAppData(database);
+  it(
+    "seeds starter content when the database is empty",
+    { timeout: 30000 },
+    async () => {
+      const result = await initializeAppData(database);
 
-    expect(result.seeded).toBe(true);
-    expect(result.seedPackId).toBe("starter-n5");
-    expect(result.summary).toEqual({
-      vocab: 3,
-      kanji: 2,
-      sentences: 2,
-    });
-  });
+      expect(result.seeded).toBe(true);
+      expect(result.seedPackId).not.toBeNull();
+      expect(result.summary.vocab).toBeGreaterThan(40);
+      expect(result.summary.kanji).toBeGreaterThan(5);
+      expect(result.summary.sentences).toBeGreaterThan(5);
+    },
+  );
 
   it("does not reseed when content already exists", async () => {
     await database.vocabItems.add({
