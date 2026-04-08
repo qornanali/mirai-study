@@ -33,7 +33,8 @@ describe("initializeAppData", () => {
     },
   );
 
-  it("does not reseed when content already exists", async () => {
+  it("does not reseed when seed version is current", async () => {
+    await database.appMeta.add({ id: "seedVersion", value: "1" });
     await database.vocabItems.add({
       id: "existing-vocab",
       level: "N5",

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { AppBootstrapResult } from "./app/bootstrap";
-import { initializeAppData } from "./app/bootstrap";
+import { initializeAppData, useAppUpdate } from "./app/bootstrap";
 import type { DailySessionPlan } from "./app/session";
 import { buildDailySession } from "./app/session";
 import { HomeScreen, PracticeScreen, SettingsScreen } from "./app/screens";
@@ -68,6 +68,10 @@ function App() {
     useState<BeforeInstallPromptEvent | null>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
   const [isInstallingApp, setIsInstallingApp] = useState(false);
+  const [updateDismissed, setUpdateDismissed] = useState(false);
+  const { updateAvailable } = useAppUpdate();
+
+  const showUpdateBanner = updateAvailable && !updateDismissed;
 
   useEffect(() => {
     let cancelled = false;
@@ -273,6 +277,29 @@ function App() {
 
   return (
     <>
+      {showUpdateBanner && (
+        <div className="update-banner" role="alert">
+          <span>New version available</span>
+          <div className="update-banner__actions">
+            <button
+              className="update-banner__reload"
+              type="button"
+              onClick={() => window.location.reload()}
+            >
+              Reload
+            </button>
+            <button
+              className="update-banner__dismiss"
+              type="button"
+              aria-label="Dismiss update notification"
+              onClick={() => setUpdateDismissed(true)}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {currentScreen === "home" && (
         <HomeScreen
           bootstrapResult={bootstrapResult}

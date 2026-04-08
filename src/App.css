@@ -3,6 +3,52 @@
   min-height: 100vh;
 }
 
+.update-banner {
+  align-items: center;
+  background: #1d4ed8;
+  color: #fff;
+  display: flex;
+  font-size: 0.875rem;
+  font-weight: 500;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.6rem 1.25rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.update-banner__actions {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.update-banner__reload {
+  background: #fff;
+  border: none;
+  border-radius: 6px;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+}
+
+.update-banner__dismiss {
+  background: transparent;
+  border: none;
+  color: #bfdbfe;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.25rem;
+}
+
+.update-banner__dismiss:hover {
+  color: #fff;
+}
+
 .app-shell {
   display: grid;
   gap: 1.5rem;

@@ -13,6 +13,11 @@ export interface StoredSettings extends UserSettings {
   id: "user";
 }
 
+export interface AppMetaRecord {
+  id: string;
+  value: string;
+}
+
 export class RenshuuDexieDatabase extends Dexie {
   vocabItems!: EntityTable<VocabItem, "id">;
   kanjiItems!: EntityTable<KanjiItem, "id">;
@@ -21,6 +26,7 @@ export class RenshuuDexieDatabase extends Dexie {
   userProgress!: EntityTable<UserProgress, "id">;
   attempts!: EntityTable<StudyAttempt, "id">;
   settings!: EntityTable<StoredSettings, "id">;
+  appMeta!: EntityTable<AppMetaRecord, "id">;
 
   constructor(name = "renshuu") {
     super(name);
@@ -33,6 +39,17 @@ export class RenshuuDexieDatabase extends Dexie {
       userProgress: "id, itemId, module, updatedAt",
       attempts: "id, itemId, module, createdAt",
       settings: "id",
+    });
+
+    this.version(2).stores({
+      vocabItems: "id, level",
+      kanjiItems: "id, level",
+      sentenceItems: "id, level, *vocabIds",
+      reviewStates: "id, itemId, dueAt, module, algorithm",
+      userProgress: "id, itemId, module, updatedAt",
+      attempts: "id, itemId, module, createdAt",
+      settings: "id",
+      appMeta: "id",
     });
   }
 }
