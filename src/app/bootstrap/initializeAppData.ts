@@ -3,6 +3,7 @@ import { ingestSeedData } from "../../data/seeding/ingestSeedData";
 import { starterN5Seed } from "../../data/seeding/starterN5Seed";
 import { jlptN4Seed } from "../../data/seeding/jlptN4Seed";
 import { jlptN3Seed } from "../../data/seeding/jlptN3Seed";
+import { getKanaSeedPacks } from "../../data/seeding/kanaSeedLoader";
 import { RemoteDataFetcher } from "../../data/seeding/remoteDataFetcher";
 
 /**
@@ -10,7 +11,7 @@ import { RemoteDataFetcher } from "../../data/seeding/remoteDataFetcher";
  * On next app load, existing users will automatically receive the updated content
  * while their study progress is preserved.
  */
-const SEED_VERSION = "1";
+const SEED_VERSION = "2";
 
 export interface AppContentSummary {
   vocab: number;
@@ -50,6 +51,8 @@ async function setStoredSeedVersion(
 }
 
 async function runSeed(database: RenshuuDexieDatabase): Promise<string> {
+  const kanaPacks = getKanaSeedPacks();
+
   const enrichedPack = await RemoteDataFetcher.buildEnrichedN5N3Curriculum();
 
   if (enrichedPack && enrichedPack.vocab.length > 30) {
@@ -58,14 +61,20 @@ async function runSeed(database: RenshuuDexieDatabase): Promise<string> {
     await ingestSeedData(database, starterN5Seed);
     await ingestSeedData(database, jlptN4Seed);
     await ingestSeedData(database, jlptN3Seed);
-    return `${enrichedPack.id} (Jisho.org + local)`;
+    for (const kanaPack of kanaPacks) {
+      await ingestSeedData(database, kanaPack);
+    }
+    return `${enrichedPack.id} (Jisho.org + local + kana)`;
   }
 
   console.log("⚠ Loading local seeds (remote fetch failed or too small)");
   await ingestSeedData(database, starterN5Seed);
   await ingestSeedData(database, jlptN4Seed);
   await ingestSeedData(database, jlptN3Seed);
-  return `${starterN5Seed.id}+${jlptN4Seed.id}+${jlptN3Seed.id} (local)`;
+  for (const kanaPack of kanaPacks) {
+    await ingestSeedData(database, kanaPack);
+  }
+  return `${starterN5Seed.id}+${jlptN4Seed.id}+${jlptN3Seed.id} (local + kana)`;
 }
 
 export async function initializeAppData(

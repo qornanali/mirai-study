@@ -1,0 +1,92 @@
+[
+  {
+    "id": "n4-kana-moshimoshi",
+    "level": "N4",
+    "japanese": "もしもし",
+    "reading": "もしもし",
+    "english": "hello (on the phone)",
+    "partOfSpeech": "other",
+    "tags": ["kana", "script:hira", "greeting"]
+  },
+  {
+    "id": "n4-kana-yukkuri",
+    "level": "N4",
+    "japanese": "ゆっくり",
+    "reading": "ゆっくり",
+    "english": "slowly",
+    "partOfSpeech": "adverb",
+    "tags": ["kana", "script:hira"]
+  },
+  {
+    "id": "n4-kana-shikkari",
+    "level": "N4",
+    "japanese": "しっかり",
+    "reading": "しっかり",
+    "english": "firmly",
+    "partOfSpeech": "adverb",
+    "tags": ["kana", "script:hira"]
+  },
+  {
+    "id": "n4-kana-dandan",
+    "level": "N4",
+    "japanese": "だんだん",
+    "reading": "だんだん",
+    "english": "gradually",
+    "partOfSpeech": "adverb",
+    "tags": ["kana", "script:hira"]
+  },
+  {
+    "id": "n4-kana-issho",
+    "level": "N4",
+    "japanese": "いっしょ",
+    "reading": "いっしょ",
+    "english": "together",
+    "partOfSpeech": "adverb",
+    "tags": ["kana", "script:hira"]
+  },
+  {
+    "id": "n4-kana-konbini",
+    "level": "N4",
+    "japanese": "コンビニ",
+    "reading": "コンビニ",
+    "english": "convenience store",
+    "partOfSpeech": "noun",
+    "tags": ["kana", "script:kata", "place"]
+  },
+  {
+    "id": "n4-kana-resutoran",
+    "level": "N4",
+    "japanese": "レストラン",
+    "reading": "レストラン",
+    "english": "restaurant",
+    "partOfSpeech": "noun",
+    "tags": ["kana", "script:kata", "place"]
+  },
+  {
+    "id": "n4-kana-erebeetaa",
+    "level": "N4",
+    "japanese": "エレベーター",
+    "reading": "エレベーター",
+    "english": "elevator",
+    "partOfSpeech": "noun",
+    "tags": ["kana", "script:kata", "object"]
+  },
+  {
+    "id": "n4-kana-arubaito",
+    "level": "N4",
+    "japanese": "アルバイト",
+    "reading": "アルバイト",
+    "english": "part-time job",
+    "partOfSpeech": "noun",
+    "tags": ["kana", "script:kata", "work"]
+  },
+  {
+    "id": "n4-kana-kamera",
+    "level": "N4",
+    "japanese": "カメラ",
+    "reading": "カメラ",
+    "english": "camera",
+    "partOfSpeech": "noun",
+    "tags": ["kana", "script:kata", "object"]
+  }
+]
