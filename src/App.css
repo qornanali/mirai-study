@@ -179,6 +179,27 @@
   width: 1rem;
 }
 
+.settings-actions {
+  border-top: 1px solid #fed7aa;
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+}
+
+.home-actions {
+  border-top: 1px solid #fed7aa;
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+  padding-top: 0.8rem;
+}
+
+.practice-panel {
+  display: grid;
+  gap: 1rem;
+}
+
 .session-panel {
   border-top: 1px solid #fed7aa;
   margin-top: 1.5rem;
