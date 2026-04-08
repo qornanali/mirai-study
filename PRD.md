@@ -39,8 +39,8 @@ The product must be:
 ## 4. Technology Stack
 
 - Framework: Vite + React + TypeScript
-- Styling/UI: Tailwind CSS + Shadcn/ui
-- Theme baseline: dark mode by default with high-contrast typography
+- Styling/UI: custom CSS (no Tailwind dependency)
+- Theme baseline: warm, light-first visual style with responsive layout
 - State management: Zustand with persistence middleware
 - Local database: Dexie.js on IndexedDB
 - Testing: Vitest + React Testing Library
@@ -71,6 +71,7 @@ All persisted data must be runtime-validated with Zod when loaded from IndexedDB
 - Hiragana and Katakana recognition exercises
 - Kanji reading exercises
 - Furigana toggle (show/hide readings dynamically)
+- Word and sentence reading prompts
 
 ### 6.2 Listening Module (Dictation)
 
@@ -84,6 +85,8 @@ All persisted data must be runtime-validated with Zod when loaded from IndexedDB
 - Prompt types: verbs, words, and sentences
 - Accept direct IME input and normalized romanized input paths
 - Normalize input before grading to reduce false negatives
+- Writing focus filters: hiragana-only, katakana-only, kanji
+- Visible keyboard mode selector in practice: Auto, Hiragana, Katakana
 
 ### 6.4 Kanji Stroke Module
 
@@ -99,6 +102,17 @@ All persisted data must be runtime-validated with Zod when loaded from IndexedDB
   - Transition to SM-2 style scheduling after stability threshold
 - Scheduler implemented as pure, deterministic logic
 - Review queue generated from stored progress state
+
+### 6.6 Session and Goal Orchestration
+
+- Practice mode selector:
+  - Streak (continuous mixed practice)
+  - Listening-only
+  - Reading-only
+  - Writing-only
+- Daily goals configurable per skill (listening, reading, writing)
+- Daily progress tracking updates after each submitted attempt
+- Users can continue learning after goals are reached
 
 ## 7. Non-Functional Requirements
 
@@ -124,7 +138,7 @@ All persisted data must be runtime-validated with Zod when loaded from IndexedDB
 
 - Keyboard-usable core interactions
 - Responsive layouts for mobile and desktop
-- Consistent readability in default dark theme
+- Consistent readability in default light theme
 
 ## 8. Architecture and Design Constraints
 
@@ -169,6 +183,7 @@ Required component/integration test areas:
 
 - Implement Dexie schema, indexes, and migrations
 - Implement seeding pipeline from JMDict-compatible source data
+- Include level-based kana JSON seed packs for hiragana/katakana-focused writing practice
 - Validate hydration paths with Zod
 
 ### Phase 4: Shared App Shell and PWA Infrastructure
@@ -194,5 +209,7 @@ Required component/integration test areas:
 - All in-scope modules are functional in a single offline-capable PWA
 - Hybrid SRS produces deterministic, test-verified scheduling outcomes
 - N5-N3 seed data loads and supports stable study session generation
+- Kana JSON seed packs are ingested successfully for N5-N3
+- Users can switch keyboard mode (Auto/Hiragana/Katakana) during practice
 - Users can complete a full study loop without network after initial load
 - Test suite covers core domain logic and critical user flows

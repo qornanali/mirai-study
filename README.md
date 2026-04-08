@@ -1,73 +1,57 @@
-# React + TypeScript + Vite
+# Mirai Study
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Mirai Study is an offline-first Japanese learning PWA focused on daily practice from JLPT N5 to N3.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Practice modes:
+  - Never-ending streak mode (mixes listening, reading, and writing)
+  - Listening-only mode (word or sentence)
+  - Reading-only mode (word or sentence)
+  - Writing-only mode (hiragana, katakana, or kanji)
+- Daily goals for listening, reading, and writing with live progress tracking
+- Furigana toggle support
+- Kana input support with visible keyboard mode selector:
+  - Auto
+  - Hiragana
+  - Katakana
+- Kanji stroke practice module
+- Offline-first data layer with IndexedDB (Dexie)
+- PWA support with service worker update notifications
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React + TypeScript + Vite
+- Dexie (IndexedDB)
+- Zod runtime validation
+- Wanakana (kana conversion)
+- Vitest + Testing Library
 
-## Expanding the ESLint configuration
+## Data and Seeding
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Local seed packs for N5, N4, and N3 content
+- Additional kana JSON seed packs by level:
+  - `src/data/seeding/kana/n5.vocab.json`
+  - `src/data/seeding/kana/n4.vocab.json`
+  - `src/data/seeding/kana/n3.vocab.json`
+- Remote enrichment is supported during bootstrap; local seed fallback is always available
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Scripts
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- `npm run dev`: start dev server
+- `npm run build`: typecheck + production build
+- `npm test`: run tests
+- `npm run test:watch`: test watch mode
+- `npm run typecheck`: run TypeScript build checks
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Getting Started
+
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Quality Status
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- Strict TypeScript enabled
+- Tests passing for session planning, grading, seeding, and bootstrap flows
