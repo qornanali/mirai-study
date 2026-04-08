@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 200" role="img" aria-label="Mirai Study logo">
+  <defs>
+    <linearGradient id="logo-bg" x1="22" y1="20" x2="178" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffe8c7" />
+      <stop offset="1" stop-color="#f9c57d" />
+    </linearGradient>
+    <linearGradient id="logo-ink" x1="52" y1="58" x2="146" y2="147" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#c24d17" />
+      <stop offset="1" stop-color="#7a2513" />
+    </linearGradient>
+  </defs>
+
+  <rect x="20" y="20" width="160" height="160" rx="40" fill="url(#logo-bg)" />
+  <path d="M58 64h84v74a9 9 0 0 1-9 9H67a9 9 0 0 1-9-9z" fill="#fff7ec" />
+  <path d="M58 64h42v83H67a9 9 0 0 1-9-9z" fill="#ffefda" />
+  <path d="M100 64h42v74a9 9 0 0 1-9 9h-33z" fill="#fff3e1" />
+  <path d="M100 64v83" stroke="#e2b893" stroke-width="3" />
+  <path d="M74 90h18m-18 14h18m-18 14h18" stroke="#e3bd9b" stroke-linecap="round" stroke-width="3" />
+  <path d="M110 90h18m-18 14h18m-18 14h18" stroke="#e3bd9b" stroke-linecap="round" stroke-width="3" />
+  <path d="M67 50l21 18m0-18L67 68" stroke="url(#logo-ink)" stroke-linecap="round" stroke-width="8" />
+  <circle cx="147" cy="48" r="14" fill="#ffd978" />
+  <path d="M147 26v8M147 62v8M125 48h8M161 48h8M131 32l5 5M158 59l5 5M163 32l-5 5M136 59l-5 5" stroke="#df9e2f" stroke-linecap="round" stroke-width="3" />
+  <rect x="20" y="20" width="160" height="160" rx="40" fill="none" stroke="#d99754" stroke-width="2" />
+
+  <text x="220" y="102" fill="#7a2513" font-family="'Trebuchet MS', 'Avenir Next', 'Segoe UI', sans-serif" font-size="66" font-weight="800" letter-spacing="1">Mirai Study</text>
+  <text x="223" y="136" fill="#ad4a1d" font-family="'Trebuchet MS', 'Avenir Next', 'Segoe UI', sans-serif" font-size="22" font-weight="600" letter-spacing="2.4">OFFLINE JAPANESE PRACTICE</text>
+</svg>
