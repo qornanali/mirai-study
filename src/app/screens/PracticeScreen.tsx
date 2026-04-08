@@ -330,6 +330,18 @@ export function PracticeScreen({
   if (!sessionPlan || sessionStatus === "idle") {
     return (
       <main className="app-shell">
+        <header className="app-topbar">
+          <p className="app-brand">練習 Practice</p>
+          <button
+            className="icon-button"
+            type="button"
+            aria-label="Back to home"
+            onClick={onNavigateToHome}
+          >
+            ⌂
+          </button>
+        </header>
+
         <section className="status-card">
           <div>
             <p className="section-label">Practice session</p>
@@ -357,7 +369,7 @@ export function PracticeScreen({
                 type="button"
                 onClick={onNavigateToHome}
               >
-                Back to home
+                Exit
               </button>
             </>
           )}
@@ -369,6 +381,18 @@ export function PracticeScreen({
   if (sessionStatus === "complete") {
     return (
       <main className="app-shell">
+        <header className="app-topbar">
+          <p className="app-brand">練習 Complete</p>
+          <button
+            className="icon-button"
+            type="button"
+            aria-label="Back to home"
+            onClick={onNavigateToHome}
+          >
+            ⌂
+          </button>
+        </header>
+
         <section className="status-card">
           <p className="section-label">Session complete</p>
           <h2>Great work!</h2>
@@ -394,6 +418,18 @@ export function PracticeScreen({
   if (sessionStatus === "active" && promptLoading) {
     return (
       <main className="app-shell">
+        <header className="app-topbar">
+          <p className="app-brand">練習 Practice</p>
+          <button
+            className="icon-button"
+            type="button"
+            aria-label="Exit session"
+            onClick={handleEndSession}
+          >
+            ✕
+          </button>
+        </header>
+
         <section className="status-card">
           <p className="status-message">Loading...</p>
         </section>
@@ -403,6 +439,18 @@ export function PracticeScreen({
 
   return (
     <main className="app-shell">
+      <header className="app-topbar">
+        <p className="app-brand">練習 Practice</p>
+        <button
+          className="icon-button"
+          type="button"
+          aria-label="Exit session"
+          onClick={handleEndSession}
+        >
+          ✕
+        </button>
+      </header>
+
       {sessionStatus === "active" &&
         activeItem &&
         (activePrompt || activeKanji || activeSentencePrompt) && (

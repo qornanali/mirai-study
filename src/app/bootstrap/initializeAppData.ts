@@ -91,3 +91,16 @@ export async function initializeAppData(
     summary: await getContentSummary(database),
   };
 }
+
+export async function refreshAppData(
+  database: RenshuuDexieDatabase,
+): Promise<AppBootstrapResult> {
+  const seedPackId = await runSeed(database);
+  await setStoredSeedVersion(database);
+
+  return {
+    seeded: true,
+    seedPackId,
+    summary: await getContentSummary(database),
+  };
+}

@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import type { AppBootstrapResult } from "./app/bootstrap";
-import { initializeAppData, useAppUpdate } from "./app/bootstrap";
+import {
+  initializeAppData,
+  refreshAppData,
+  useAppUpdate,
+} from "./app/bootstrap";
 import type { DailySessionPlan } from "./app/session";
 import { buildDailySession } from "./app/session";
 import { HomeScreen, PracticeScreen, SettingsScreen } from "./app/screens";
@@ -68,6 +72,7 @@ function App() {
     useState<BeforeInstallPromptEvent | null>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
   const [isInstallingApp, setIsInstallingApp] = useState(false);
+  const [isRefreshingSeed, setIsRefreshingSeed] = useState(false);
   const [updateDismissed, setUpdateDismissed] = useState(false);
   const { updateAvailable } = useAppUpdate();
 
@@ -238,6 +243,30 @@ function App() {
     }
   }
 
+  async function handleRefreshSeed() {
+    setIsRefreshingSeed(true);
+    setSettingsError(null);
+
+    try {
+      const result = await refreshAppData(db);
+      const plannedSession = await loadLatestSessionPlan(
+        new Date().toISOString(),
+      );
+      setBootstrapResult(result);
+      setSessionPlan(plannedSession);
+      appReadyPromise = null;
+      bootstrapPromise = null;
+    } catch (error) {
+      setSettingsError(
+        error instanceof Error
+          ? error.message
+          : "Failed to refresh study seed data.",
+      );
+    } finally {
+      setIsRefreshingSeed(false);
+    }
+  }
+
   if (status === "loading") {
     return (
       <main className="app-shell">
@@ -304,10 +333,6 @@ function App() {
         <HomeScreen
           bootstrapResult={bootstrapResult}
           sessionPlan={sessionPlan}
-          isAppInstalled={isAppInstalled}
-          installPromptEvent={installPromptEvent}
-          isInstallingApp={isInstallingApp}
-          onInstallApp={handleInstallApp}
           onNavigateToSettings={() => setCurrentScreen("settings")}
           onNavigateToPractice={() => setCurrentScreen("practice")}
         />
@@ -327,13 +352,20 @@ function App() {
 
       {currentScreen === "settings" && (
         <SettingsScreen
+          bootstrapResult={bootstrapResult}
           availableVoices={availableVoices}
           voicePreference={voicePreference}
           furiganaEnabled={furiganaEnabled}
+          isAppInstalled={isAppInstalled}
+          installPromptEvent={installPromptEvent}
+          isInstallingApp={isInstallingApp}
+          isRefreshingSeed={isRefreshingSeed}
           isSavingVoicePreference={isSavingVoicePreference}
           isSavingFuriganaPreference={isSavingFuriganaPreference}
           settingsError={settingsError}
           settingsRepo={settingsRepo}
+          onInstallApp={handleInstallApp}
+          onRefreshSeed={handleRefreshSeed}
           onVoicePreferenceChange={handleVoicePreferenceChange}
           onFuriganaPreferenceChange={handleFuriganaPreferenceChange}
           onNavigateToHome={() => setCurrentScreen("home")}

@@ -1,9 +1,13 @@
 :root {
-  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", "Segoe UI",
+    sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #1f2937;
-  background-color: #f8fafc;
+  color: #2a211d;
+  background:
+    radial-gradient(circle at 12% 10%, #fff6ea 0%, transparent 28%),
+    radial-gradient(circle at 88% 86%, #ffeeda 0%, transparent 26%), #f8f4ef;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -11,5 +15,6 @@
 }
 
 body {
+  background: transparent;
   margin: 0;
 }

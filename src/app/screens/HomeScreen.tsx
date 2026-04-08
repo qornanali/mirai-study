@@ -4,10 +4,6 @@ import type { DailySessionPlan } from "../../app/session";
 export interface HomeScreenProps {
   bootstrapResult: AppBootstrapResult | null;
   sessionPlan: DailySessionPlan | null;
-  isAppInstalled: boolean;
-  installPromptEvent: any;
-  isInstallingApp: boolean;
-  onInstallApp: () => void;
   onNavigateToSettings: () => void;
   onNavigateToPractice: () => void;
 }
@@ -15,10 +11,6 @@ export interface HomeScreenProps {
 export function HomeScreen({
   bootstrapResult,
   sessionPlan,
-  isAppInstalled,
-  installPromptEvent,
-  isInstallingApp,
-  onInstallApp,
   onNavigateToSettings,
   onNavigateToPractice,
 }: HomeScreenProps) {
@@ -26,12 +18,23 @@ export function HomeScreen({
 
   return (
     <main className="app-shell">
+      <header className="app-topbar">
+        <p className="app-brand">練習 Renshuu</p>
+        <button
+          className="icon-button"
+          type="button"
+          aria-label="Open settings"
+          onClick={onNavigateToSettings}
+        >
+          ☰
+        </button>
+      </header>
+
       <section className="hero-panel">
         <p className="eyebrow">Offline-first Japanese study</p>
         <h1>Renshuu</h1>
         <p className="hero-copy">
-          The app now boots its local database on first run and loads starter
-          JLPT N5 study content automatically.
+          Small daily drills. Calm rhythm. Better memory.
         </p>
       </section>
 
@@ -72,35 +75,6 @@ export function HomeScreen({
             </div>
 
             <section className="settings-panel">
-              <div className="install-panel">
-                <p className="section-label">Install app</p>
-                {isAppInstalled ? (
-                  <p className="practice-hint">
-                    App is installed on this device.
-                  </p>
-                ) : installPromptEvent ? (
-                  <>
-                    <p className="practice-hint">
-                      Install Renshuu for a full-screen, app-like experience.
-                    </p>
-                    <button
-                      className="secondary-button"
-                      type="button"
-                      onClick={onInstallApp}
-                      disabled={isInstallingApp}
-                    >
-                      {isInstallingApp
-                        ? "Opening install prompt..."
-                        : "Install app"}
-                    </button>
-                  </>
-                ) : (
-                  <p className="practice-hint">
-                    Install option will appear when supported by your browser.
-                  </p>
-                )}
-              </div>
-
               <div className="home-actions">
                 <p className="section-label">Get started</p>
                 <button
@@ -110,13 +84,6 @@ export function HomeScreen({
                   disabled={!canStartSession}
                 >
                   {canStartSession ? "Start practicing" : "No items available"}
-                </button>
-                <button
-                  className="secondary-button"
-                  type="button"
-                  onClick={onNavigateToSettings}
-                >
-                  Settings
                 </button>
               </div>
             </section>

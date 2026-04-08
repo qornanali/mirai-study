@@ -24,6 +24,11 @@ export function KanjiStrokeCanvas({
   const STROKE_WIDTH = 3;
 
   useEffect(() => {
+    setStrokes([]);
+    onStrokesChange([]);
+  }, [character, onStrokesChange]);
+
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -101,13 +106,32 @@ export function KanjiStrokeCanvas({
     }
   }
 
-  const handleMouseDown = useCallback(() => {
-    if (disabled) return;
-    setIsDrawing(true);
-  }, [disabled]);
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
+      if (disabled) return;
 
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      setIsDrawing(true);
+      setStrokes((prev) => [
+        ...prev,
+        {
+          points: [{ x, y }],
+          timestamp: Date.now(),
+        },
+      ]);
+      canvas.setPointerCapture(e.pointerId);
+    },
+    [disabled],
+  );
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
       if (!isDrawing || !context || disabled) return;
 
       const canvas = canvasRef.current;
@@ -132,16 +156,9 @@ export function KanjiStrokeCanvas({
 
       setStrokes((prev) => {
         const newStrokes = [...prev];
-        if (newStrokes.length === 0) {
-          newStrokes.push({
-            points: [{ x, y }],
-            timestamp: Date.now(),
-          });
-        } else {
-          const lastStr = newStrokes[newStrokes.length - 1];
-          if (lastStr) {
-            lastStr.points.push({ x, y });
-          }
+        const lastStr = newStrokes[newStrokes.length - 1];
+        if (lastStr) {
+          lastStr.points.push({ x, y });
         }
         return newStrokes;
       });
@@ -149,7 +166,7 @@ export function KanjiStrokeCanvas({
     [isDrawing, context, strokes, disabled],
   );
 
-  const handleMouseUp = useCallback(() => {
+  const handlePointerUp = useCallback(() => {
     if (!isDrawing) return;
     setIsDrawing(false);
 
@@ -164,7 +181,7 @@ export function KanjiStrokeCanvas({
     onStrokesChange(newStrokes);
   }, [isDrawing, strokes, onStrokesChange]);
 
-  const handleMouseLeave = useCallback(() => {
+  const handlePointerLeave = useCallback(() => {
     if (isDrawing) {
       setIsDrawing(false);
       const newStrokes = [...strokes];
@@ -206,10 +223,11 @@ export function KanjiStrokeCanvas({
           width={CANVAS_WIDTH}
           height={CANVAS_HEIGHT}
           className={`kanji-canvas ${disabled ? "kanji-canvas--disabled" : ""}`}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={handlePointerLeave}
+          onPointerCancel={handlePointerLeave}
         />
         <p className="canvas-hint">
           {disabled ? "Reviewing..." : `Strokes: ${strokes.length}`}

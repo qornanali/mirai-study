@@ -169,5 +169,64 @@ async function getNewItems(
     }
   }
 
+  const alreadyHasKanji = newItems.some((item) => item.module === "kanji");
+
+  if (!alreadyHasKanji) {
+    let kanjiOffset = 0;
+    let pendingKanji: SessionQueueItem | null = null;
+
+    while (scannedItems < MAX_SCAN_ITEMS) {
+      const kanjiBatch = await deps.dataRepo.getKanjiByLevel(
+        level,
+        PAGE_SIZE,
+        kanjiOffset,
+      );
+
+      if (kanjiBatch.length === 0) {
+        break;
+      }
+
+      kanjiOffset += kanjiBatch.length;
+
+      let pushedKanji = false;
+
+      for (const kanji of kanjiBatch) {
+        scannedItems += 1;
+        const kanjiReviewState = await deps.progressRepo.getReviewState(
+          kanji.id,
+          "kanji",
+        );
+
+        if (!kanjiReviewState) {
+          pendingKanji = {
+            itemId: kanji.id,
+            module: "kanji",
+            type: "new",
+          };
+          pushedKanji = true;
+          break;
+        }
+
+        if (scannedItems >= MAX_SCAN_ITEMS) {
+          break;
+        }
+      }
+
+      if (
+        pushedKanji ||
+        newItems.length === limit ||
+        scannedItems >= MAX_SCAN_ITEMS
+      ) {
+        break;
+      }
+    }
+
+    if (pendingKanji && newItems.length < limit) {
+      newItems.push(pendingKanji);
+    } else if (pendingKanji && newItems.length > 0 && limit > 1) {
+      newItems[newItems.length - 1] = pendingKanji;
+    }
+  }
+
   return newItems;
 }
