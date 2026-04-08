@@ -1,4 +1,5 @@
 export * from "./buildDailySession";
+export * from "./gradeKanjiAnswer";
 export * from "./gradeListeningAnswer";
 export * from "./gradeReadingAnswer";
 export * from "./gradeWritingAnswer";

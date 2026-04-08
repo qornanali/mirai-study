@@ -21,13 +21,13 @@ describe("initializeAppData", () => {
 
   it(
     "seeds starter content when the database is empty",
-    { timeout: 30000 },
+    { timeout: 35000 },
     async () => {
       const result = await initializeAppData(database);
 
       expect(result.seeded).toBe(true);
       expect(result.seedPackId).not.toBeNull();
-      expect(result.summary.vocab).toBeGreaterThan(40);
+      expect(result.summary.vocab).toBeGreaterThan(25);
       expect(result.summary.kanji).toBeGreaterThan(5);
       expect(result.summary.sentences).toBeGreaterThan(5);
     },

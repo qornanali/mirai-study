@@ -41,7 +41,8 @@ export async function initializeAppData(
   if (!hasSeedData) {
     const enrichedPack = await RemoteDataFetcher.buildEnrichedN5N3Curriculum();
 
-    if (enrichedPack && enrichedPack.vocab.length > 50) {
+    if (enrichedPack && enrichedPack.vocab.length > 30) {
+      console.log(`✓ Loaded ${enrichedPack.vocab.length} vocab from Jisho.org`);
       await ingestSeedData(database, enrichedPack);
       await ingestSeedData(database, starterN5Seed);
       await ingestSeedData(database, jlptN4Seed);
@@ -54,6 +55,7 @@ export async function initializeAppData(
       };
     }
 
+    console.log("⚠ Loading local seeds (remote fetch failed or too small)");
     await ingestSeedData(database, starterN5Seed);
     await ingestSeedData(database, jlptN4Seed);
     await ingestSeedData(database, jlptN3Seed);

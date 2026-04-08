@@ -339,6 +339,59 @@
   padding: 1rem;
 }
 
+.kanji-stroke-container {
+  display: grid;
+  gap: 1rem;
+  align-items: center;
+  justify-items: center;
+}
+
+.kanji-display {
+  display: grid;
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.kanji-character {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1;
+  font-family: serif;
+}
+
+.kanji-stroke-count {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.canvas-wrapper {
+  display: grid;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.kanji-canvas {
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.kanji-canvas--disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.canvas-hint {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 0;
+  text-align: center;
+}
+
 @media (max-width: 640px) {
   .app-shell {
     padding: 1.5rem 1rem 2rem;

@@ -7,9 +7,11 @@ import {
   type DailySessionPlan,
   type SessionAnswerResult,
   type SessionQueueItem,
+  type StrokePath,
 } from "../../app/session";
 import type { IJapaneseDataRepo, IProgressRepo } from "../../data/contracts";
-import type { SentenceItem, VocabItem } from "../../types";
+import type { KanjiItem, SentenceItem, VocabItem } from "../../types";
+import { KanjiStrokeCanvas } from "./KanjiStrokeCanvas";
 
 export interface PracticeScreenProps {
   sessionPlan: DailySessionPlan | null;
@@ -38,6 +40,8 @@ export function PracticeScreen({
   const [activePrompt, setActivePrompt] = useState<VocabItem | null>(null);
   const [activeSentencePrompt, setActiveSentencePrompt] =
     useState<SentenceItem | null>(null);
+  const [activeKanji, setActiveKanji] = useState<KanjiItem | null>(null);
+  const [kanjiStrokes, setKanjiStrokes] = useState<StrokePath[]>([]);
   const kanaInput = useKanaInput();
   const [submission, setSubmission] = useState<SessionAnswerResult | null>(
     null,
@@ -51,6 +55,7 @@ export function PracticeScreen({
 
   const isWritingPrompt = activeItem?.module === "writing";
   const isListeningPrompt = activeItem?.module === "listening";
+  const isKanjiPrompt = activeItem?.module === "kanji";
 
   const playListeningAudio = useCallback(
     (prompt: VocabItem) => {
@@ -158,8 +163,17 @@ export function PracticeScreen({
       try {
         let prompt: VocabItem | null = null;
         let sentence: SentenceItem | null = null;
+        let kanji: KanjiItem | null = null;
 
-        if (item.module === "listening" && item.promptType === "sentence") {
+        if (item.module === "kanji") {
+          kanji = await dataRepo.getKanjiById(item.itemId);
+          if (!kanji) {
+            throw new Error(`Missing kanji item ${item.itemId} for session.`);
+          }
+        } else if (
+          item.module === "listening" &&
+          item.promptType === "sentence"
+        ) {
           sentence = await dataRepo.getSentenceById(item.itemId);
           if (!sentence) {
             throw new Error(
@@ -182,6 +196,8 @@ export function PracticeScreen({
         setActiveItem(item);
         setActivePrompt(prompt);
         setActiveSentencePrompt(sentence);
+        setActiveKanji(kanji);
+        setKanjiStrokes([]);
         setSessionError(null);
         setAudioError(null);
         kanaInput.reset();
@@ -227,6 +243,11 @@ export function PracticeScreen({
       return;
     }
 
+    if (activeItem.module === "kanji" && kanjiStrokes.length === 0) {
+      setSessionError("Please draw the kanji strokes before submitting.");
+      return;
+    }
+
     try {
       const result = await submitSessionAnswer(
         {
@@ -236,7 +257,10 @@ export function PracticeScreen({
         {
           item: activeItem,
           nowIso: new Date().toISOString(),
-          userAnswer: kanaInput.value,
+          userAnswer: activeItem.module === "kanji" ? "" : kanaInput.value,
+          ...(activeItem.module === "kanji" && {
+            strokes: kanjiStrokes,
+          }),
         },
       );
 
@@ -276,6 +300,7 @@ export function PracticeScreen({
       setActiveItem(null);
       setActivePrompt(null);
       setActiveSentencePrompt(null);
+      setActiveKanji(null);
       return;
     }
 
@@ -288,6 +313,8 @@ export function PracticeScreen({
     setActiveItem(null);
     setActivePrompt(null);
     setActiveSentencePrompt(null);
+    setActiveKanji(null);
+    setKanjiStrokes([]);
     kanaInput.reset();
     setSubmission(null);
     setCompletedSessionSummary(null);
@@ -360,164 +387,204 @@ export function PracticeScreen({
 
   return (
     <main className="app-shell">
-      {sessionStatus === "active" && activePrompt && activeItem && (
-        <section className="practice-panel">
-          <div className="practice-card">
-            <div className="practice-card__meta">
-              <span>
-                Item {activeIndex + 1} of {sessionPlan?.items.length}
-              </span>
-              <span className="practice-badge">{activeItem.type}</span>
-            </div>
+      {sessionStatus === "active" &&
+        activeItem &&
+        (activePrompt || activeKanji) && (
+          <section className="practice-panel">
+            <div className="practice-card">
+              <div className="practice-card__meta">
+                <span>
+                  Item {activeIndex + 1} of {sessionPlan?.items.length}
+                </span>
+                <span className="practice-badge">{activeItem.type}</span>
+              </div>
 
-            <p className="section-label">
-              {isWritingPrompt
-                ? "Write the Japanese answer"
-                : isListeningPrompt
-                  ? "Transcribe the dictation"
-                  : "Type the kana reading"}
-            </p>
-            {isWritingPrompt ? (
-              <>
-                <div className="practice-word">{activePrompt.english}</div>
-                <p className="practice-hint">
-                  Enter Japanese script or normalized romaji.
-                </p>
-              </>
-            ) : isListeningPrompt ? (
-              <>
-                <div className="practice-word">Audio prompt</div>
-                <p className="practice-hint">Listen and type what you hear.</p>
-                {activeItem.promptType === "sentence" &&
-                  activeSentencePrompt && (
-                    <p className="practice-hint">
-                      Sentence hint: {activeSentencePrompt.english}
-                    </p>
-                  )}
-                <button
-                  className="secondary-button"
-                  type="button"
-                  onClick={() => {
-                    if (
-                      activeItem.promptType === "sentence" &&
-                      activeSentencePrompt
-                    ) {
-                      playListeningText(
-                        activeSentencePrompt.reading ??
-                          activeSentencePrompt.japanese,
-                      );
-                      return;
-                    }
-
-                    if (activePrompt) {
-                      playListeningAudio(activePrompt);
-                    }
-                  }}
-                >
-                  Replay audio
-                </button>
-                {audioError && (
-                  <div className="audio-error-panel">
-                    <p className="status-message status-message--error">
-                      {audioError}
-                    </p>
-                    <button
-                      className="secondary-button"
-                      type="button"
-                      onClick={handleNextItem}
-                    >
-                      Skip item
-                    </button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <div className="practice-word">{activePrompt.japanese}</div>
-                {furiganaEnabled && activePrompt.reading && (
-                  <p className="practice-hint">
-                    Furigana: {activePrompt.reading}
-                  </p>
-                )}
-                <p className="practice-hint">Meaning: {activePrompt.english}</p>
-              </>
-            )}
-
-            <form className="practice-form" onSubmit={handleSubmit}>
-              <label className="practice-label" htmlFor="reading-answer">
-                Your answer
-              </label>
-              <input
-                id="reading-answer"
-                className="practice-input"
-                value={kanaInput.value}
-                onChange={kanaInput.onChange}
-                placeholder={
-                  isWritingPrompt
-                    ? "日本語または romaji"
+              <p className="section-label">
+                {isKanjiPrompt
+                  ? "Draw the kanji strokes"
+                  : isWritingPrompt
+                    ? "Write the Japanese answer"
                     : isListeningPrompt
-                      ? "ききとったかな"
-                      : "かなで入力"
-                }
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck={false}
-                disabled={submission !== null}
-              />
-              <button
-                className="primary-button"
-                type="submit"
-                disabled={
-                  kanaInput.value.trim().length === 0 || submission !== null
-                }
-              >
-                Check answer
-              </button>
-            </form>
-
-            {sessionError && (
-              <p className="status-message status-message--error">
-                {sessionError}
+                      ? "Transcribe the dictation"
+                      : "Type the kana reading"}
               </p>
-            )}
+              {isKanjiPrompt && activeKanji ? (
+                <>
+                  <div className="practice-word">Show the meaning</div>
+                  <p className="practice-hint">
+                    Kanji meaning: {activeKanji.meaning}
+                  </p>
+                  <KanjiStrokeCanvas
+                    character={activeKanji.character}
+                    svgPaths={activeKanji.strokeSvgPaths}
+                    onStrokesChange={setKanjiStrokes}
+                    disabled={submission !== null}
+                  />
+                </>
+              ) : isWritingPrompt ? (
+                <>
+                  {activePrompt && (
+                    <>
+                      <div className="practice-word">
+                        {activePrompt.english}
+                      </div>
+                      <p className="practice-hint">
+                        Enter Japanese script or normalized romaji.
+                      </p>
+                    </>
+                  )}
+                </>
+              ) : isListeningPrompt ? (
+                <>
+                  <div className="practice-word">Audio prompt</div>
+                  <p className="practice-hint">
+                    Listen and type what you hear.
+                  </p>
+                  {activeItem.promptType === "sentence" &&
+                    activeSentencePrompt && (
+                      <p className="practice-hint">
+                        Sentence hint: {activeSentencePrompt.english}
+                      </p>
+                    )}
+                  <button
+                    className="secondary-button"
+                    type="button"
+                    onClick={() => {
+                      if (
+                        activeItem.promptType === "sentence" &&
+                        activeSentencePrompt
+                      ) {
+                        playListeningText(
+                          activeSentencePrompt.reading ??
+                            activeSentencePrompt.japanese,
+                        );
+                        return;
+                      }
 
-            {submission && (
-              <div className="feedback-panel">
-                <p
-                  className={
-                    submission.attempt.result.isCorrect
-                      ? "feedback-text feedback-text--correct"
-                      : "feedback-text feedback-text--incorrect"
-                  }
-                >
-                  {submission.attempt.result.isCorrect
-                    ? "Correct"
-                    : "Not quite"}
-                </p>
-                <p className="practice-hint">
-                  {activeItem.module === "writing"
-                    ? `Expected answer: ${submission.attempt.expectedAnswer}`
-                    : `Expected reading: ${submission.attempt.expectedAnswer}`}
-                </p>
-                <p className="practice-hint">
-                  Next review:{" "}
-                  {new Date(submission.reviewState.dueAt).toLocaleString()}
-                </p>
+                      if (activePrompt) {
+                        playListeningAudio(activePrompt);
+                      }
+                    }}
+                  >
+                    Replay audio
+                  </button>
+                  {audioError && (
+                    <div className="audio-error-panel">
+                      <p className="status-message status-message--error">
+                        {audioError}
+                      </p>
+                      <button
+                        className="secondary-button"
+                        type="button"
+                        onClick={handleNextItem}
+                      >
+                        Skip item
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {activePrompt && (
+                    <>
+                      <div className="practice-word">
+                        {activePrompt.japanese}
+                      </div>
+                      {furiganaEnabled && activePrompt.reading && (
+                        <p className="practice-hint">
+                          Furigana: {activePrompt.reading}
+                        </p>
+                      )}
+                      <p className="practice-hint">
+                        Meaning: {activePrompt.english}
+                      </p>
+                    </>
+                  )}
+                </>
+              )}
+
+              <form className="practice-form" onSubmit={handleSubmit}>
+                {!isKanjiPrompt && (
+                  <>
+                    <label className="practice-label" htmlFor="reading-answer">
+                      Your answer
+                    </label>
+                    <input
+                      id="reading-answer"
+                      className="practice-input"
+                      value={kanaInput.value}
+                      onChange={kanaInput.onChange}
+                      placeholder={
+                        isWritingPrompt
+                          ? "日本語または romaji"
+                          : isListeningPrompt
+                            ? "ききとったかな"
+                            : "かなで入力"
+                      }
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck={false}
+                      disabled={submission !== null}
+                    />
+                  </>
+                )}
                 <button
                   className="primary-button"
-                  type="button"
-                  onClick={handleNextItem}
+                  type="submit"
+                  disabled={
+                    isKanjiPrompt
+                      ? kanjiStrokes.length === 0 || submission !== null
+                      : kanaInput.value.trim().length === 0 ||
+                        submission !== null
+                  }
                 >
-                  {activeIndex + 1 >= (sessionPlan?.items.length ?? 0)
-                    ? "Finish session"
-                    : "Next item"}
+                  {isKanjiPrompt ? "Check strokes" : "Check answer"}
                 </button>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
+              </form>
+
+              {sessionError && (
+                <p className="status-message status-message--error">
+                  {sessionError}
+                </p>
+              )}
+
+              {submission && (
+                <div className="feedback-panel">
+                  <p
+                    className={
+                      submission.attempt.result.isCorrect
+                        ? "feedback-text feedback-text--correct"
+                        : "feedback-text feedback-text--incorrect"
+                    }
+                  >
+                    {submission.attempt.result.isCorrect
+                      ? "Correct"
+                      : "Not quite"}
+                  </p>
+                  <p className="practice-hint">
+                    {activeItem.module === "writing"
+                      ? `Expected answer: ${submission.attempt.expectedAnswer}`
+                      : `Expected reading: ${submission.attempt.expectedAnswer}`}
+                  </p>
+                  <p className="practice-hint">
+                    Next review:{" "}
+                    {new Date(submission.reviewState.dueAt).toLocaleString()}
+                  </p>
+                  <button
+                    className="primary-button"
+                    type="button"
+                    onClick={handleNextItem}
+                  >
+                    {activeIndex + 1 >= (sessionPlan?.items.length ?? 0)
+                      ? "Finish session"
+                      : "Next item"}
+                  </button>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
     </main>
   );
 }

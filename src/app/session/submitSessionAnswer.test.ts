@@ -21,6 +21,11 @@ class FakeDataRepo implements IJapaneseDataRepo {
     return this.vocab;
   }
 
+  async getKanjiById(id: string): Promise<KanjiItem | null> {
+    void id;
+    return null;
+  }
+
   async getSentenceById(id: string): Promise<SentenceItem | null> {
     if (id === "s1") {
       return {

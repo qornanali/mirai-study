@@ -6,6 +6,7 @@ import type { SessionQueueItem } from "./buildDailySession";
 import { gradeListeningAnswer } from "./gradeListeningAnswer";
 import { gradeReadingAnswer } from "./gradeReadingAnswer";
 import { gradeWritingAnswer } from "./gradeWritingAnswer";
+import { gradeKanjiAnswer, type StrokePath } from "./gradeKanjiAnswer";
 
 export interface SubmitSessionAnswerDeps {
   dataRepo: IJapaneseDataRepo;
@@ -16,6 +17,7 @@ export interface SubmitSessionAnswerInput {
   item: SessionQueueItem;
   nowIso: string;
   userAnswer: string;
+  strokes?: StrokePath[];
 }
 
 export interface SessionAnswerResult extends ProgressRecord {
@@ -61,55 +63,75 @@ export async function submitSessionAnswer(
   if (
     input.item.module !== "reading" &&
     input.item.module !== "writing" &&
-    input.item.module !== "listening"
+    input.item.module !== "listening" &&
+    input.item.module !== "kanji"
   ) {
     throw new Error(`Unsupported session module ${input.item.module}.`);
   }
 
-  const vocab = await deps.dataRepo.getVocabById(input.item.itemId);
+  let result;
+  let resolvedExpectedAnswer = "";
 
-  if (!vocab) {
-    throw new Error(`Missing vocab item ${input.item.itemId}.`);
-  }
+  if (input.item.module === "kanji") {
+    const kanji = await deps.dataRepo.getKanjiById(input.item.itemId);
 
-  const expectedAnswer =
-    input.item.module === "writing"
-      ? vocab.japanese
-      : (vocab.reading ?? vocab.japanese);
-  let result = gradeReadingAnswer(expectedAnswer, input.userAnswer);
-  let resolvedExpectedAnswer = expectedAnswer;
+    if (!kanji) {
+      throw new Error(`Missing kanji item ${input.item.itemId}.`);
+    }
 
-  if (input.item.module === "writing") {
-    result = gradeWritingAnswer(
-      vocab.japanese,
-      input.userAnswer,
-      vocab.reading,
-    );
-  }
+    if (!input.strokes) {
+      throw new Error("Kanji submission requires stroke data.");
+    }
 
-  if (input.item.module === "listening") {
-    if (input.item.promptType === "sentence") {
-      const sentence = await deps.dataRepo.getSentenceById(input.item.itemId);
+    result = gradeKanjiAnswer(input.strokes, kanji.strokeSvgPaths.length);
+    resolvedExpectedAnswer = kanji.character;
+  } else {
+    const vocab = await deps.dataRepo.getVocabById(input.item.itemId);
 
-      if (!sentence) {
-        throw new Error(`Missing sentence item ${input.item.itemId}.`);
+    if (!vocab) {
+      throw new Error(`Missing vocab item ${input.item.itemId}.`);
+    }
+
+    const expectedAnswer =
+      input.item.module === "writing"
+        ? vocab.japanese
+        : (vocab.reading ?? vocab.japanese);
+    result = gradeReadingAnswer(expectedAnswer, input.userAnswer);
+    resolvedExpectedAnswer = expectedAnswer;
+
+    if (input.item.module === "writing") {
+      result = gradeWritingAnswer(
+        vocab.japanese,
+        input.userAnswer,
+        vocab.reading,
+      );
+    }
+
+    if (input.item.module === "listening") {
+      if (input.item.promptType === "sentence") {
+        const sentence = await deps.dataRepo.getSentenceById(input.item.itemId);
+
+        if (!sentence) {
+          throw new Error(`Missing sentence item ${input.item.itemId}.`);
+        }
+
+        resolvedExpectedAnswer = sentence.reading ?? sentence.japanese;
+        result = gradeListeningAnswer({
+          expected: resolvedExpectedAnswer,
+          actual: input.userAnswer,
+          promptType: "sentence",
+        });
+      } else {
+        resolvedExpectedAnswer = vocab.reading ?? vocab.japanese;
+        result = gradeListeningAnswer({
+          expected: resolvedExpectedAnswer,
+          actual: input.userAnswer,
+          promptType: "word",
+        });
       }
-
-      resolvedExpectedAnswer = sentence.reading ?? sentence.japanese;
-      result = gradeListeningAnswer({
-        expected: resolvedExpectedAnswer,
-        actual: input.userAnswer,
-        promptType: "sentence",
-      });
-    } else {
-      resolvedExpectedAnswer = vocab.reading ?? vocab.japanese;
-      result = gradeListeningAnswer({
-        expected: resolvedExpectedAnswer,
-        actual: input.userAnswer,
-        promptType: "word",
-      });
     }
   }
+
   const quality = result.isCorrect ? 4 : 1;
   const currentReviewState =
     (await deps.progressRepo.getReviewState(

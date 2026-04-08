@@ -74,40 +74,66 @@ export class RemoteDataFetcher {
       try {
         const url = `${this.JISHO_BASE}?keyword=${keyword}&page=${page}`;
         const response = await fetch(url, {
-          signal: AbortSignal.timeout(8000),
+          signal: AbortSignal.timeout(12000),
         });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) {
+          console.warn(
+            `Jisho HTTP ${response.status} for ${level} page ${page}`,
+          );
+          break;
+        }
 
         const data: JishoResponse = await response.json();
-        if (data.meta.status !== 200 || data.data.length === 0) break;
+        if (data.meta.status !== 200 || data.data.length === 0) {
+          console.log(`Jisho ${level} reached end at page ${page}`);
+          break;
+        }
 
+        let itemsAdded = 0;
         for (const entry of data.data) {
           const item = jishoWordToVocab(entry, level);
           if (item && !seenIds.has(item.id)) {
             seenIds.add(item.id);
             vocab.push(item);
+            itemsAdded++;
           }
         }
+        console.log(
+          `Jisho ${level} page ${page}: +${itemsAdded} items (total: ${vocab.length})`,
+        );
       } catch (error) {
         console.warn(`Failed to fetch Jisho page ${page} for ${level}:`, error);
-        break;
+        if (vocab.length === 0) break;
       }
     }
 
+    console.log(`Jisho ${level} fetch complete: ${vocab.length} items`);
     return vocab;
   }
 
   static async buildEnrichedN5N3Curriculum(): Promise<RawSeedPack | null> {
     try {
+      console.log("Starting remote curriculum fetch from Jisho...");
+      const startTime = Date.now();
       const [n5Vocab, n4Vocab, n3Vocab] = await Promise.all([
-        this.fetchJishoVocab("N5", 5),
-        this.fetchJishoVocab("N4", 8),
-        this.fetchJishoVocab("N3", 8),
+        this.fetchJishoVocab("N5", 2),
+        this.fetchJishoVocab("N4", 2),
+        this.fetchJishoVocab("N3", 2),
       ]);
 
       const allVocab = [...n5Vocab, ...n4Vocab, ...n3Vocab];
-      if (allVocab.length < 50) return null;
+      const elapsed = Date.now() - startTime;
+      console.log(
+        `Remote curriculum complete in ${elapsed}ms: ${allVocab.length} total vocab`,
+      );
+      if (allVocab.length < 30) {
+        console.warn(
+          `Remote vocab too small (${allVocab.length} < 30), falling back to local seeds`,
+        );
+        return null;
+      }
 
+      console.log("✓ Remote curriculum loaded successfully");
       return {
         id: "jlpt-n5-n3-enriched",
         level: "N5",
@@ -117,7 +143,7 @@ export class RemoteDataFetcher {
         sentences: [],
       };
     } catch (error) {
-      console.error("Failed to build enriched curriculum:", error);
+      console.error("✗ Failed to build enriched curriculum:", error);
       return null;
     }
   }
