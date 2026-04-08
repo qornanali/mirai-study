@@ -52,6 +52,7 @@ export function PracticeScreen({
   } | null>(null);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [audioError, setAudioError] = useState<string | null>(null);
+  const [promptLoading, setPromptLoading] = useState(false);
 
   const isWritingPrompt = activeItem?.module === "writing";
   const isListeningPrompt = activeItem?.module === "listening";
@@ -160,6 +161,8 @@ export function PracticeScreen({
         return;
       }
 
+      setPromptLoading(true);
+
       try {
         let prompt: VocabItem | null = null;
         let sentence: SentenceItem | null = null;
@@ -202,6 +205,7 @@ export function PracticeScreen({
         setAudioError(null);
         kanaInput.reset();
         setSubmission(null);
+        setPromptLoading(false);
 
         if (item.module === "listening") {
           if (item.promptType === "sentence" && sentence) {
@@ -215,6 +219,7 @@ export function PracticeScreen({
           return;
         }
 
+        setPromptLoading(false);
         setSessionError(
           error instanceof Error
             ? error.message
@@ -280,6 +285,7 @@ export function PracticeScreen({
 
   function handleStartSession() {
     setActiveIndex(0);
+    setPromptLoading(true);
     setSessionStatus("active");
     setCompletedSessionSummary({ answered: 0, correct: 0 });
     setSessionError(null);
@@ -385,11 +391,21 @@ export function PracticeScreen({
     );
   }
 
+  if (sessionStatus === "active" && promptLoading) {
+    return (
+      <main className="app-shell">
+        <section className="status-card">
+          <p className="status-message">Loading...</p>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="app-shell">
       {sessionStatus === "active" &&
         activeItem &&
-        (activePrompt || activeKanji) && (
+        (activePrompt || activeKanji || activeSentencePrompt) && (
           <section className="practice-panel">
             <div className="practice-card">
               <div className="practice-card__meta">

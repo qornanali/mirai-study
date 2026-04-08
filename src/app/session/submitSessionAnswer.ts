@@ -85,6 +85,22 @@ export async function submitSessionAnswer(
 
     result = gradeKanjiAnswer(input.strokes, kanji.strokeSvgPaths.length);
     resolvedExpectedAnswer = kanji.character;
+  } else if (
+    input.item.module === "listening" &&
+    input.item.promptType === "sentence"
+  ) {
+    const sentence = await deps.dataRepo.getSentenceById(input.item.itemId);
+
+    if (!sentence) {
+      throw new Error(`Missing sentence item ${input.item.itemId}.`);
+    }
+
+    resolvedExpectedAnswer = sentence.reading ?? sentence.japanese;
+    result = gradeListeningAnswer({
+      expected: resolvedExpectedAnswer,
+      actual: input.userAnswer,
+      promptType: "sentence",
+    });
   } else {
     const vocab = await deps.dataRepo.getVocabById(input.item.itemId);
 
@@ -108,27 +124,12 @@ export async function submitSessionAnswer(
     }
 
     if (input.item.module === "listening") {
-      if (input.item.promptType === "sentence") {
-        const sentence = await deps.dataRepo.getSentenceById(input.item.itemId);
-
-        if (!sentence) {
-          throw new Error(`Missing sentence item ${input.item.itemId}.`);
-        }
-
-        resolvedExpectedAnswer = sentence.reading ?? sentence.japanese;
-        result = gradeListeningAnswer({
-          expected: resolvedExpectedAnswer,
-          actual: input.userAnswer,
-          promptType: "sentence",
-        });
-      } else {
-        resolvedExpectedAnswer = vocab.reading ?? vocab.japanese;
-        result = gradeListeningAnswer({
-          expected: resolvedExpectedAnswer,
-          actual: input.userAnswer,
-          promptType: "word",
-        });
-      }
+      resolvedExpectedAnswer = vocab.reading ?? vocab.japanese;
+      result = gradeListeningAnswer({
+        expected: resolvedExpectedAnswer,
+        actual: input.userAnswer,
+        promptType: "word",
+      });
     }
   }
 
