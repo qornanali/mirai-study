@@ -1,6 +1,12 @@
 import { z } from "zod";
 import { jlptLevelSchema } from "../zod";
 
+export const sourceAttributionSchema = z.object({
+  source: z.enum(["local", "jmdict", "kanjiapi", "tatoeba", "jisho"]),
+  attribution: z.string(),
+  licenseUrl: z.string().url().optional(),
+});
+
 export const rawSeedVocabSchema = z.object({
   id: z.string().min(1),
   level: jlptLevelSchema,
@@ -35,11 +41,14 @@ export const rawSeedPackSchema = z.object({
   id: z.string().min(1),
   level: jlptLevelSchema,
   version: z.number().int().min(1),
+  schemaVersion: z.string().default("1.0.0"),
+  sourceAttribution: sourceAttributionSchema.optional(),
   vocab: z.array(rawSeedVocabSchema),
   kanji: z.array(rawSeedKanjiSchema),
   sentences: z.array(rawSeedSentenceSchema),
 });
 
+export type SourceAttribution = z.infer<typeof sourceAttributionSchema>;
 export type RawSeedVocab = z.infer<typeof rawSeedVocabSchema>;
 export type RawSeedKanji = z.infer<typeof rawSeedKanjiSchema>;
 export type RawSeedSentence = z.infer<typeof rawSeedSentenceSchema>;
