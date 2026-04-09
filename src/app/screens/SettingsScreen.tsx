@@ -412,6 +412,42 @@ export function SettingsScreen({
               {settingsError}
             </p>
           )}
+
+          <div className="voice-panel">
+            <p className="section-label">About</p>
+            <p className="practice-hint">Built with love by Ali Qornan.</p>
+            <p className="practice-hint">
+              <a
+                href="https://github.com/qornanali"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GitHub
+              </a>
+              {" · "}
+              <a
+                href="https://www.linkedin.com/in/aliqornan/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                LinkedIn
+              </a>
+            </p>
+            <p className="practice-hint">
+              Illustrations by{" "}
+              <a
+                href="https://www.irasutoya.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                いらすとや (irasutoya.com)
+              </a>
+            </p>
+            <p className="practice-hint">
+              ⚠️ This app is a study aid. Always verify with a dictionary and
+              consult your teacher.
+            </p>
+          </div>
         </section>
 
         <div className="settings-actions">
