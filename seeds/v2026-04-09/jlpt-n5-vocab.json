@@ -1,0 +1,144 @@
+{
+  "id": "jlpt-n5-vocab",
+  "level": "N5",
+  "version": 1,
+  "schemaVersion": "1.0.0",
+  "sourceAttribution": {
+    "source": "local",
+    "attribution": "Mirai Study local kana vocab"
+  },
+  "vocab": [
+    {
+      "id": "n5-kana-konnichiwa",
+      "level": "N5",
+      "japanese": "こんにちは",
+      "reading": "こんにちは",
+      "english": "hello",
+      "partOfSpeech": "other",
+      "tags": [
+        "kana",
+        "script:hira",
+        "greeting"
+      ]
+    },
+    {
+      "id": "n5-kana-arigatou",
+      "level": "N5",
+      "japanese": "ありがとう",
+      "reading": "ありがとう",
+      "english": "thank you",
+      "partOfSpeech": "other",
+      "tags": [
+        "kana",
+        "script:hira",
+        "greeting"
+      ]
+    },
+    {
+      "id": "n5-kana-sayonara",
+      "level": "N5",
+      "japanese": "さようなら",
+      "reading": "さようなら",
+      "english": "goodbye",
+      "partOfSpeech": "other",
+      "tags": [
+        "kana",
+        "script:hira",
+        "greeting"
+      ]
+    },
+    {
+      "id": "n5-kana-ohayou",
+      "level": "N5",
+      "japanese": "おはよう",
+      "reading": "おはよう",
+      "english": "good morning",
+      "partOfSpeech": "other",
+      "tags": [
+        "kana",
+        "script:hira",
+        "greeting"
+      ]
+    },
+    {
+      "id": "n5-kana-konbanwa",
+      "level": "N5",
+      "japanese": "こんばんは",
+      "reading": "こんばんは",
+      "english": "good evening",
+      "partOfSpeech": "other",
+      "tags": [
+        "kana",
+        "script:hira",
+        "greeting"
+      ]
+    },
+    {
+      "id": "n5-kana-pan",
+      "level": "N5",
+      "japanese": "パン",
+      "reading": "パン",
+      "english": "bread",
+      "partOfSpeech": "noun",
+      "tags": [
+        "kana",
+        "script:kata",
+        "food"
+      ]
+    },
+    {
+      "id": "n5-kana-terebi",
+      "level": "N5",
+      "japanese": "テレビ",
+      "reading": "テレビ",
+      "english": "television",
+      "partOfSpeech": "noun",
+      "tags": [
+        "kana",
+        "script:kata",
+        "object"
+      ]
+    },
+    {
+      "id": "n5-kana-koohii",
+      "level": "N5",
+      "japanese": "コーヒー",
+      "reading": "コーヒー",
+      "english": "coffee",
+      "partOfSpeech": "noun",
+      "tags": [
+        "kana",
+        "script:kata",
+        "drink"
+      ]
+    },
+    {
+      "id": "n5-kana-toire",
+      "level": "N5",
+      "japanese": "トイレ",
+      "reading": "トイレ",
+      "english": "toilet",
+      "partOfSpeech": "noun",
+      "tags": [
+        "kana",
+        "script:kata",
+        "place"
+      ]
+    },
+    {
+      "id": "n5-kana-bas",
+      "level": "N5",
+      "japanese": "バス",
+      "reading": "バス",
+      "english": "bus",
+      "partOfSpeech": "noun",
+      "tags": [
+        "kana",
+        "script:kata",
+        "transport"
+      ]
+    }
+  ],
+  "kanji": [],
+  "sentences": []
+}

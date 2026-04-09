@@ -1,0 +1,36 @@
+{
+  "manifestVersion": "1.0.0",
+  "published": "2026-04-09T05:36:03.475Z",
+  "packs": [
+    {
+      "id": "jlpt-n3-vocab",
+      "type": "vocab",
+      "level": "N3",
+      "packVersion": 1,
+      "recordCount": 10,
+      "sha256": "1eb1f46a1d33a7cd92844b45b798840430db6fcfeac253ee95fd65e995a855a0",
+      "url": "https://raw.githubusercontent.com/qornanali/mirai-study/refs/heads/main/seeds/v2026-04-09/jlpt-n3-vocab.json",
+      "sourceAttribution": "local: Mirai Study local kana vocab"
+    },
+    {
+      "id": "jlpt-n4-vocab",
+      "type": "vocab",
+      "level": "N4",
+      "packVersion": 1,
+      "recordCount": 10,
+      "sha256": "bbc90f73c5730899bf600ffdb53596a1489db6e0420203b44c4a2bbc6bb68ca5",
+      "url": "https://raw.githubusercontent.com/qornanali/mirai-study/refs/heads/main/seeds/v2026-04-09/jlpt-n4-vocab.json",
+      "sourceAttribution": "local: Mirai Study local kana vocab"
+    },
+    {
+      "id": "jlpt-n5-vocab",
+      "type": "vocab",
+      "level": "N5",
+      "packVersion": 1,
+      "recordCount": 10,
+      "sha256": "abe27d491875ac655637a87cecae4d5ee566d0f2497776a1dbaebe7cf4ccabd4",
+      "url": "https://raw.githubusercontent.com/qornanali/mirai-study/refs/heads/main/seeds/v2026-04-09/jlpt-n5-vocab.json",
+      "sourceAttribution": "local: Mirai Study local kana vocab"
+    }
+  ]
+}

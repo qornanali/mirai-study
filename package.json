@@ -11,7 +11,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc -b --pretty false"
+    "typecheck": "tsc -b --pretty false",
+    "seed:prepare-input": "node ./scripts/build-local-seed-input.mjs",
+    "seed:emit": "node ./scripts/emit-seed-artifacts.mjs --input ./seeds/input --output ./seeds"
   },
   "dependencies": {
     "dexie": "^4.4.2",

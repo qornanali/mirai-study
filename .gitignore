@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Generated seed staging input (keep versioned seeds outputs tracked)
+seeds/input/

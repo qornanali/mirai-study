@@ -1,0 +1,134 @@
+{
+  "id": "jlpt-n3-vocab",
+  "level": "N3",
+  "version": 1,
+  "schemaVersion": "1.0.0",
+  "sourceAttribution": {
+    "source": "local",
+    "attribution": "Mirai Study local kana vocab"
+  },
+  "vocab": [
+    {
+      "id": "n3-kana-tatoeba",
+      "level": "N3",
+      "japanese": "たとえば",
+      "reading": "たとえば",
+      "english": "for example",
+      "partOfSpeech": "adverb",
+      "tags": [
+        "kana",
+        "script:hira"
+      ]
+    },
+    {
+      "id": "n3-kana-sorezore",
+      "level": "N3",
+      "japanese": "それぞれ",
+      "reading": "それぞれ",
+      "english": "each; respectively",
+      "partOfSpeech": "adverb",
+      "tags": [
+        "kana",
+        "script:hira"
+      ]
+    },
+    {
+      "id": "n3-kana-naruhodo",
+      "level": "N3",
+      "japanese": "なるほど",
+      "reading": "なるほど",
+      "english": "I see",
+      "partOfSpeech": "other",
+      "tags": [
+        "kana",
+        "script:hira"
+      ]
+    },
+    {
+      "id": "n3-kana-oyoso",
+      "level": "N3",
+      "japanese": "およそ",
+      "reading": "およそ",
+      "english": "approximately",
+      "partOfSpeech": "adverb",
+      "tags": [
+        "kana",
+        "script:hira"
+      ]
+    },
+    {
+      "id": "n3-kana-mottomo",
+      "level": "N3",
+      "japanese": "もっとも",
+      "reading": "もっとも",
+      "english": "however; though",
+      "partOfSpeech": "other",
+      "tags": [
+        "kana",
+        "script:hira"
+      ]
+    },
+    {
+      "id": "n3-kana-media",
+      "level": "N3",
+      "japanese": "メディア",
+      "reading": "メディア",
+      "english": "media",
+      "partOfSpeech": "noun",
+      "tags": [
+        "kana",
+        "script:kata"
+      ]
+    },
+    {
+      "id": "n3-kana-sukejuuru",
+      "level": "N3",
+      "japanese": "スケジュール",
+      "reading": "スケジュール",
+      "english": "schedule",
+      "partOfSpeech": "noun",
+      "tags": [
+        "kana",
+        "script:kata"
+      ]
+    },
+    {
+      "id": "n3-kana-puresshaa",
+      "level": "N3",
+      "japanese": "プレッシャー",
+      "reading": "プレッシャー",
+      "english": "pressure",
+      "partOfSpeech": "noun",
+      "tags": [
+        "kana",
+        "script:kata"
+      ]
+    },
+    {
+      "id": "n3-kana-charenji",
+      "level": "N3",
+      "japanese": "チャレンジ",
+      "reading": "チャレンジ",
+      "english": "challenge",
+      "partOfSpeech": "noun",
+      "tags": [
+        "kana",
+        "script:kata"
+      ]
+    },
+    {
+      "id": "n3-kana-birudingu",
+      "level": "N3",
+      "japanese": "ビルディング",
+      "reading": "ビルディング",
+      "english": "building",
+      "partOfSpeech": "noun",
+      "tags": [
+        "kana",
+        "script:kata"
+      ]
+    }
+  ],
+  "kanji": [],
+  "sentences": []
+}
