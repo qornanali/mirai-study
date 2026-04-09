@@ -1,6 +1,6 @@
-import n5KanaVocab from "./kana/n5.vocab.json";
-import n4KanaVocab from "./kana/n4.vocab.json";
-import n3KanaVocab from "./kana/n3.vocab.json";
+import n5KanaVocab from "./kana/jlpt-n5-vocab.json";
+import n4KanaVocab from "./kana/jlpt-n4-vocab.json";
+import n3KanaVocab from "./kana/jlpt-n3-vocab.json";
 import type { RawSeedPack, RawSeedVocab } from "./types";
 
 const KANA_SEED_VERSION = 1;
@@ -10,9 +10,14 @@ function createKanaPack(
   vocab: RawSeedVocab[],
 ): RawSeedPack {
   return {
-    id: `kana-${level.toLowerCase()}`,
+    id: `jlpt-${level.toLowerCase()}-vocab`,
     level,
     version: KANA_SEED_VERSION,
+    schemaVersion: "1.0.0",
+    sourceAttribution: {
+      source: "local",
+      attribution: "Mirai Study - curated kana vocabulary",
+    },
     vocab,
     kanji: [],
     sentences: [],
