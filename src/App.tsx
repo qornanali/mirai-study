@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import type { AppBootstrapResult } from "./app/bootstrap";
-import {
-  initializeAppData,
-  refreshAppData,
-  useAppUpdate,
-} from "./app/bootstrap";
+import { initializeAppData, useAppUpdate } from "./app/bootstrap";
 import type { DailySessionPlan } from "./app/session";
 import { buildDailySession } from "./app/session";
 import { HomeScreen, PracticeScreen, SettingsScreen } from "./app/screens";
@@ -14,6 +10,7 @@ import {
   DexieProgressRepo,
   DexieSettingsRepo,
 } from "./data/dexie";
+import { checkAndApplyRemoteSeedUpdate } from "./data/seeding";
 import type {
   DailyGoals,
   ListeningFocus,
@@ -288,23 +285,31 @@ function App() {
 
     try {
       const nowIso = new Date().toISOString();
-      const result = await refreshAppData(db);
+      const remoteResult = await checkAndApplyRemoteSeedUpdate(db);
       const plannedSession = await loadLatestSessionPlan(nowIso, practiceMode);
       const todayProgress = await progressRepo.getDailyModuleAttempts(nowIso);
-      setBootstrapResult(result);
+
+      setBootstrapResult({
+        seeded: remoteResult.status === "updated",
+        seedPackId: `remote:${remoteResult.manifestVersion}`,
+        summary: remoteResult.summary,
+      });
       setSessionPlan(plannedSession);
       setDailyProgress({
         listening: todayProgress.listening,
         reading: todayProgress.reading,
         writing: todayProgress.writing,
       });
+      if (remoteResult.status === "up-to-date") {
+        setSettingsError("Seed data is already up to date.");
+      }
       appReadyPromise = null;
       bootstrapPromise = null;
     } catch (error) {
       setSettingsError(
         error instanceof Error
           ? error.message
-          : "Failed to refresh study seed data.",
+          : "Failed to check and apply remote seed update.",
       );
     } finally {
       setIsRefreshingSeed(false);

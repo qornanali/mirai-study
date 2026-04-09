@@ -9,14 +9,20 @@ export interface SeedIngestionResult {
   sentencesInserted: number;
 }
 
-export async function ingestSeedData(
+async function ingestSeedPacksInternal(
   database: RenshuuDexieDatabase,
-  rawSeedPack: RawSeedPack,
+  rawSeedPacks: RawSeedPack[],
 ): Promise<SeedIngestionResult> {
-  const pack = rawSeedPackSchema.parse(rawSeedPack);
-  const vocab = pack.vocab.map(adaptSeedVocabItem);
-  const kanji = pack.kanji.map(adaptSeedKanjiItem);
-  const sentences = pack.sentences.map(adaptSeedSentenceItem);
+  const parsedPacks = rawSeedPacks.map((pack) => rawSeedPackSchema.parse(pack));
+  const vocab = parsedPacks.flatMap((pack) =>
+    pack.vocab.map(adaptSeedVocabItem),
+  );
+  const kanji = parsedPacks.flatMap((pack) =>
+    pack.kanji.map(adaptSeedKanjiItem),
+  );
+  const sentences = parsedPacks.flatMap((pack) =>
+    pack.sentences.map(adaptSeedSentenceItem),
+  );
   const vocabIds = new Set(vocab.map((item) => item.id));
 
   for (const sentence of sentences) {
@@ -46,4 +52,18 @@ export async function ingestSeedData(
     kanjiInserted: kanji.length,
     sentencesInserted: sentences.length,
   };
+}
+
+export async function ingestSeedData(
+  database: RenshuuDexieDatabase,
+  rawSeedPack: RawSeedPack,
+): Promise<SeedIngestionResult> {
+  return ingestSeedPacksInternal(database, [rawSeedPack]);
+}
+
+export async function ingestSeedDataBatch(
+  database: RenshuuDexieDatabase,
+  rawSeedPacks: RawSeedPack[],
+): Promise<SeedIngestionResult> {
+  return ingestSeedPacksInternal(database, rawSeedPacks);
 }

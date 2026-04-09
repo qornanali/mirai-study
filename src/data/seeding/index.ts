@@ -3,6 +3,7 @@ export * from "./jmdictAdapter";
 export * from "./kanjiVGAdapter";
 export * from "./kanaSeedLoader";
 export * from "./remoteDataFetcher";
+export * from "./remoteSeedUpdate";
 export * from "./starterN5Seed";
 export * from "./jlptN4Seed";
 export * from "./jlptN3Seed";

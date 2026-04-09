@@ -133,7 +133,8 @@ export function SettingsScreen({
           <div className="voice-panel">
             <p className="section-label">Seed data</p>
             <p className="practice-hint">
-              Refresh pulls latest curriculum and re-merges local seed packs.
+              Manually checks remote manifest and applies updates when a newer
+              version is available.
             </p>
             <button
               className="secondary-button"
@@ -143,7 +144,9 @@ export function SettingsScreen({
               }}
               disabled={isRefreshingSeed}
             >
-              {isRefreshingSeed ? "Refreshing seed..." : "Refresh seed data"}
+              {isRefreshingSeed
+                ? "Checking seed updates..."
+                : "Check seed updates"}
             </button>
             {bootstrapResult && (
               <div className="summary-grid">
@@ -162,8 +165,8 @@ export function SettingsScreen({
               </div>
             )}
             <p className="practice-hint">
-              Remote Jisho enrichment currently expands vocabulary only. Kanji
-              and sentence pools are from local seed packs.
+              Remote updates are applied only when checksums and schema
+              validation pass.
             </p>
           </div>
 
