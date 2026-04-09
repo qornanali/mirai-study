@@ -52,10 +52,9 @@ VITE_SEED_MANIFEST_URL=https://raw.githubusercontent.com/<owner>/<repo>/main/see
 
 Seed data is managed through a versioned pipeline:
 
-1. **Source kana packs** live in `src/data/seeding/kana/` (N5, N4, N3 JSON files)
-2. **Build input** — `npm run seed:prepare-input` reads those files and writes staging packs to `seeds/input/` (git-ignored)
-3. **Emit artifacts** — `npm run seed:emit` reads `seeds/input/`, splits by type, computes SHA-256 checksums, and writes versioned output + a `seed-manifest.json` to `seeds/<version>/`
-4. **Remote updates** — after publishing to GitHub, set `VITE_SEED_MANIFEST_URL` in `.env`; the app fetches the manifest, validates checksums and schema, and applies updates transactionally
+1. **Build artifacts** — `npm run seed:emit` reads prepared input packs from `seeds/input/`, splits by type, computes SHA-256 checksums, and writes versioned output + a `seed-manifest.json` to `seeds/<version>/`
+2. **Bootstrap seeding** — on app start, the app fetches the configured manifest URL and applies packs transactionally when the remote version is newer
+3. **Manual updates** — Settings > Check seed updates runs the same manifest flow on demand
 
 ## Scripts
 
@@ -66,7 +65,6 @@ Seed data is managed through a versioned pipeline:
 | `npm test`                   | Run all tests                                   |
 | `npm run test:watch`         | Tests in watch mode                             |
 | `npm run typecheck`          | TypeScript build checks only                    |
-| `npm run seed:prepare-input` | Build seed staging input from kana source files |
 | `npm run seed:emit`          | Emit versioned seed artifacts and manifest      |
 
 ## Quality Status

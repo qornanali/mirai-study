@@ -5,13 +5,12 @@ This folder contains the full seed pipeline: extraction, normalization, artifact
 ## Pipeline Overview
 
 ```
-kana/*.json
-    └─ seed:prepare-input ──► seeds/input/
-                                   └─ seed:emit ──► seeds/<version>/
-                                                        ├── jlpt-n5-vocab.json
-                                                        ├── jlpt-n4-vocab.json
-                                                        ├── jlpt-n3-vocab.json
-                                                        └── seed-manifest.json
+seeds/input/*.json
+    └─ seed:emit ──► seeds/<version>/
+                         ├── jlpt-n5-vocab.json
+                         ├── jlpt-n4-vocab.json
+                         ├── jlpt-n3-vocab.json
+                         └── seed-manifest.json
 ```
 
 ## Key Modules
