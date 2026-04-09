@@ -10,8 +10,10 @@ export const seedPackMetadataSchema = z.object({
     .string()
     .min(1)
     .describe("Unique pack identifier (e.g., jlpt-n5-vocab)"),
-  type: z.enum(["vocab", "kanji", "sentence"]).describe("Pack content type"),
-  level: jlptLevelSchema.describe("JLPT level (N5, N4, N3, N2, N1)"),
+  type: z
+    .enum(["vocab", "kanji", "sentence", "hiragana", "katakana"])
+    .describe("Pack content type"),
+  level: jlptLevelSchema.optional().describe("Optional JLPT level"),
   packVersion: z.number().int().min(1).describe("Pack-level version counter"),
   recordCount: z.number().int().min(0).describe("Total records in this pack"),
   sha256: z

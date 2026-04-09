@@ -37,6 +37,11 @@ export const rawSeedSentenceSchema = z.object({
   vocabIds: z.array(z.string()),
 });
 
+export const rawKanaStrokeSchema = z.object({
+  character: z.string().min(1),
+  strokes: z.number().int().min(1),
+});
+
 export const rawSeedPackSchema = z.object({
   id: z.string().min(1),
   level: jlptLevelSchema,
@@ -46,10 +51,13 @@ export const rawSeedPackSchema = z.object({
   vocab: z.array(rawSeedVocabSchema),
   kanji: z.array(rawSeedKanjiSchema),
   sentences: z.array(rawSeedSentenceSchema),
+  hiragana: z.array(rawKanaStrokeSchema).optional(),
+  katakana: z.array(rawKanaStrokeSchema).optional(),
 });
 
 export type SourceAttribution = z.infer<typeof sourceAttributionSchema>;
 export type RawSeedVocab = z.infer<typeof rawSeedVocabSchema>;
 export type RawSeedKanji = z.infer<typeof rawSeedKanjiSchema>;
 export type RawSeedSentence = z.infer<typeof rawSeedSentenceSchema>;
+export type RawKanaStroke = z.infer<typeof rawKanaStrokeSchema>;
 export type RawSeedPack = z.infer<typeof rawSeedPackSchema>;

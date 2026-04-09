@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import {
+  gradeKanjiAnswer,
   selectVoiceForJapanesePlayback,
   submitSessionAnswer,
   useKanaInput,
@@ -20,6 +21,11 @@ import type {
   ReadingFocus,
   WritingFocus,
 } from "../../data/contracts";
+import {
+  createKanaStrokeGuidePaths,
+  getKanaStrokeSeedByScript,
+  type KanaStrokeSeedItem,
+} from "../../data/seeding/kanaStrokeSeed";
 import type { KanjiItem, SentenceItem, VocabItem } from "../../types";
 import { KanjiStrokeCanvas } from "./KanjiStrokeCanvas";
 
@@ -137,6 +143,19 @@ export function PracticeScreen({
   const [loadingMascot] = useState(() => pickRandom(THINKING_MASCOTS));
   const [completeMascot] = useState(() => pickRandom(COMPLETE_MASCOTS));
   const [correctStreak, setCorrectStreak] = useState(0);
+  const [kanaStrokeScript, setKanaStrokeScript] =
+    useState<KanaScript>("hiragana");
+  const [kanaStrokeIndex, setKanaStrokeIndex] = useState(0);
+  const [kanaStrokePaths, setKanaStrokePaths] = useState<StrokePath[]>([]);
+  const [kanaStrokeFeedback, setKanaStrokeFeedback] = useState<string | null>(
+    null,
+  );
+  const [kanaStrokeResetKey, setKanaStrokeResetKey] = useState(0);
+  const [kanaStrokeSet, setKanaStrokeSet] = useState<KanaStrokeSeedItem[]>([]);
+  const [kanaStrokeLoading, setKanaStrokeLoading] = useState(false);
+  const [kanaStrokeSeedError, setKanaStrokeSeedError] = useState<string | null>(
+    null,
+  );
 
   const isWritingPrompt = activeItem?.module === "writing";
   const isListeningPrompt = activeItem?.module === "listening";
@@ -153,6 +172,90 @@ export function PracticeScreen({
     keyboardMode: kanaKeyboardMode,
     autoScript,
   });
+  const activeKanaStroke = kanaStrokeSet[kanaStrokeIndex] ?? kanaStrokeSet[0];
+  const kanaStrokeGuidePaths = createKanaStrokeGuidePaths(
+    activeKanaStroke?.strokes ?? 1,
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadKanaStrokeSet() {
+      setKanaStrokeLoading(true);
+      setKanaStrokeSeedError(null);
+
+      try {
+        const loaded = await getKanaStrokeSeedByScript(kanaStrokeScript);
+        if (cancelled) {
+          return;
+        }
+
+        setKanaStrokeSet(loaded);
+        setKanaStrokeIndex(0);
+        setKanaStrokePaths([]);
+        setKanaStrokeFeedback(null);
+        setKanaStrokeResetKey((value) => value + 1);
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        setKanaStrokeSet([]);
+        setKanaStrokeSeedError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load kana stroke seeds.",
+        );
+      } finally {
+        if (!cancelled) {
+          setKanaStrokeLoading(false);
+        }
+      }
+    }
+
+    void loadKanaStrokeSet();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [kanaStrokeScript]);
+
+  function moveKanaStroke(step: -1 | 1) {
+    if (kanaStrokeSet.length === 0) {
+      return;
+    }
+    const next =
+      (kanaStrokeIndex + step + kanaStrokeSet.length) % kanaStrokeSet.length;
+    setKanaStrokeIndex(next);
+    setKanaStrokePaths([]);
+    setKanaStrokeFeedback(null);
+    setKanaStrokeResetKey((value) => value + 1);
+  }
+
+  function randomKanaStroke() {
+    if (kanaStrokeSet.length === 0) {
+      return;
+    }
+    const next = Math.floor(Math.random() * kanaStrokeSet.length);
+    setKanaStrokeIndex(next);
+    setKanaStrokePaths([]);
+    setKanaStrokeFeedback(null);
+    setKanaStrokeResetKey((value) => value + 1);
+  }
+
+  function checkKanaStroke() {
+    if (!activeKanaStroke || kanaStrokePaths.length === 0) {
+      setKanaStrokeFeedback("Draw strokes first, then press Check strokes.");
+      return;
+    }
+
+    const result = gradeKanjiAnswer(kanaStrokePaths, activeKanaStroke.strokes);
+    setKanaStrokeFeedback(
+      result.isCorrect
+        ? "Nice! Stroke count matches."
+        : `Try again. Expected ${activeKanaStroke.strokes}, got ${kanaStrokePaths.length}.`,
+    );
+  }
 
   const playListeningAudio = useCallback(
     (prompt: VocabItem) => {
@@ -580,6 +683,99 @@ export function PracticeScreen({
                   {dailyProgress.writing}/{dailyGoals.writing}
                 </strong>
               </article>
+            </div>
+
+            <div className="voice-panel">
+              <p className="section-label">Kana stroke trainer</p>
+              <p className="practice-hint">
+                Practice writing one character at a time with stroke-count
+                feedback.
+              </p>
+              <label className="settings-label" htmlFor="kana-stroke-script">
+                Script
+              </label>
+              <select
+                id="kana-stroke-script"
+                className="settings-select"
+                value={kanaStrokeScript}
+                onChange={(event) => {
+                  setKanaStrokeScript(event.target.value as KanaScript);
+                }}
+              >
+                <option value="hiragana">Hiragana</option>
+                <option value="katakana">Katakana</option>
+              </select>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: "0.55rem",
+                  flexWrap: "wrap",
+                }}
+              >
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={() => {
+                    moveKanaStroke(-1);
+                  }}
+                  disabled={kanaStrokeLoading || kanaStrokeSet.length === 0}
+                >
+                  Previous
+                </button>
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={() => {
+                    randomKanaStroke();
+                  }}
+                  disabled={kanaStrokeLoading || kanaStrokeSet.length === 0}
+                >
+                  Random
+                </button>
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={() => {
+                    moveKanaStroke(1);
+                  }}
+                  disabled={kanaStrokeLoading || kanaStrokeSet.length === 0}
+                >
+                  Next
+                </button>
+              </div>
+
+              {kanaStrokeLoading && (
+                <p className="practice-hint">Loading kana stroke seeds...</p>
+              )}
+
+              {kanaStrokeSeedError && (
+                <p className="status-message status-message--error">
+                  {kanaStrokeSeedError}
+                </p>
+              )}
+
+              {!kanaStrokeLoading && activeKanaStroke && (
+                <KanjiStrokeCanvas
+                  key={`${kanaStrokeScript}:${kanaStrokeIndex}:${kanaStrokeResetKey}`}
+                  character={activeKanaStroke.character}
+                  svgPaths={kanaStrokeGuidePaths}
+                  onStrokesChange={setKanaStrokePaths}
+                />
+              )}
+
+              <button
+                className="primary-button"
+                type="button"
+                onClick={checkKanaStroke}
+                disabled={kanaStrokeLoading || kanaStrokeSet.length === 0}
+              >
+                Check strokes
+              </button>
+
+              {kanaStrokeFeedback && (
+                <p className="practice-hint">{kanaStrokeFeedback}</p>
+              )}
             </div>
           </div>
 

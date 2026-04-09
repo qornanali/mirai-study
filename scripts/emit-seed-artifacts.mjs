@@ -47,6 +47,14 @@ function validatePack(pack, sourceFile) {
     }
   }
 
+  if (!("hiragana" in pack)) {
+    pack.hiragana = [];
+  }
+
+  if (!("katakana" in pack)) {
+    pack.katakana = [];
+  }
+
   if (!LEVELS.has(pack.level)) {
     throw new Error(
       `Invalid pack ${sourceFile}: unsupported level '${pack.level}'`,
@@ -56,10 +64,12 @@ function validatePack(pack, sourceFile) {
   if (
     !Array.isArray(pack.vocab) ||
     !Array.isArray(pack.kanji) ||
-    !Array.isArray(pack.sentences)
+    !Array.isArray(pack.sentences) ||
+    !Array.isArray(pack.hiragana) ||
+    !Array.isArray(pack.katakana)
   ) {
     throw new Error(
-      `Invalid pack ${sourceFile}: vocab/kanji/sentences must be arrays`,
+      `Invalid pack ${sourceFile}: vocab/kanji/sentences/hiragana/katakana must be arrays`,
     );
   }
 }
@@ -102,6 +112,26 @@ function buildTypeArtifacts(pack) {
       attribution,
       licenseUrl,
     },
+    {
+      id: `kana-hiragana-strokes`,
+      type: "hiragana",
+      level: pack.level,
+      packVersion: pack.version,
+      records: pack.hiragana,
+      source,
+      attribution,
+      licenseUrl,
+    },
+    {
+      id: `kana-katakana-strokes`,
+      type: "katakana",
+      level: pack.level,
+      packVersion: pack.version,
+      records: pack.katakana,
+      source,
+      attribution,
+      licenseUrl,
+    },
   ];
 }
 
@@ -140,7 +170,7 @@ async function main() {
     for (const artifact of artifacts) {
       const payload = {
         id: artifact.id,
-        level: artifact.level,
+        ...(artifact.level ? { level: artifact.level } : {}),
         version: artifact.packVersion,
         schemaVersion: "1.0.0",
         sourceAttribution: {
@@ -151,6 +181,8 @@ async function main() {
         vocab: artifact.type === "vocab" ? artifact.records : [],
         kanji: artifact.type === "kanji" ? artifact.records : [],
         sentences: artifact.type === "sentence" ? artifact.records : [],
+        hiragana: artifact.type === "hiragana" ? artifact.records : [],
+        katakana: artifact.type === "katakana" ? artifact.records : [],
       };
 
       const serialized = `${JSON.stringify(payload, null, 2)}\n`;
@@ -167,7 +199,7 @@ async function main() {
       manifest.packs.push({
         id: artifact.id,
         type: artifact.type,
-        level: artifact.level,
+        ...(artifact.level ? { level: artifact.level } : {}),
         packVersion: artifact.packVersion,
         recordCount: artifact.records.length,
         sha256: hash,

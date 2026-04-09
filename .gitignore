@@ -26,3 +26,4 @@ dist-ssr
 
 # Generated seed staging input (keep versioned seeds outputs tracked)
 seeds/input/
+tmp

@@ -1,0 +1,356 @@
+{
+  "id": "kana-katakana-strokes",
+  "level": "N5",
+  "version": 1,
+  "schemaVersion": "1.0.0",
+  "sourceAttribution": {
+    "source": "local",
+    "attribution": "Mirai Study local kana stroke metadata"
+  },
+  "vocab": [],
+  "kanji": [],
+  "sentences": [],
+  "hiragana": [],
+  "katakana": [
+    {
+      "character": "ア",
+      "strokes": 2
+    },
+    {
+      "character": "イ",
+      "strokes": 2
+    },
+    {
+      "character": "ウ",
+      "strokes": 3
+    },
+    {
+      "character": "エ",
+      "strokes": 3
+    },
+    {
+      "character": "オ",
+      "strokes": 3
+    },
+    {
+      "character": "ァ",
+      "strokes": 2
+    },
+    {
+      "character": "ィ",
+      "strokes": 2
+    },
+    {
+      "character": "ゥ",
+      "strokes": 3
+    },
+    {
+      "character": "ェ",
+      "strokes": 3
+    },
+    {
+      "character": "ォ",
+      "strokes": 3
+    },
+    {
+      "character": "カ",
+      "strokes": 2
+    },
+    {
+      "character": "ガ",
+      "strokes": 4
+    },
+    {
+      "character": "キ",
+      "strokes": 3
+    },
+    {
+      "character": "ギ",
+      "strokes": 5
+    },
+    {
+      "character": "ク",
+      "strokes": 1
+    },
+    {
+      "character": "グ",
+      "strokes": 3
+    },
+    {
+      "character": "ケ",
+      "strokes": 3
+    },
+    {
+      "character": "ゲ",
+      "strokes": 5
+    },
+    {
+      "character": "コ",
+      "strokes": 2
+    },
+    {
+      "character": "ゴ",
+      "strokes": 4
+    },
+    {
+      "character": "サ",
+      "strokes": 3
+    },
+    {
+      "character": "ザ",
+      "strokes": 5
+    },
+    {
+      "character": "シ",
+      "strokes": 3
+    },
+    {
+      "character": "ジ",
+      "strokes": 5
+    },
+    {
+      "character": "ス",
+      "strokes": 2
+    },
+    {
+      "character": "ズ",
+      "strokes": 4
+    },
+    {
+      "character": "セ",
+      "strokes": 2
+    },
+    {
+      "character": "ゼ",
+      "strokes": 4
+    },
+    {
+      "character": "ソ",
+      "strokes": 2
+    },
+    {
+      "character": "ゾ",
+      "strokes": 4
+    },
+    {
+      "character": "タ",
+      "strokes": 3
+    },
+    {
+      "character": "ダ",
+      "strokes": 5
+    },
+    {
+      "character": "チ",
+      "strokes": 3
+    },
+    {
+      "character": "ヂ",
+      "strokes": 5
+    },
+    {
+      "character": "ツ",
+      "strokes": 3
+    },
+    {
+      "character": "ッ",
+      "strokes": 3
+    },
+    {
+      "character": "ヅ",
+      "strokes": 5
+    },
+    {
+      "character": "テ",
+      "strokes": 3
+    },
+    {
+      "character": "デ",
+      "strokes": 5
+    },
+    {
+      "character": "ト",
+      "strokes": 2
+    },
+    {
+      "character": "ド",
+      "strokes": 4
+    },
+    {
+      "character": "ナ",
+      "strokes": 2
+    },
+    {
+      "character": "ニ",
+      "strokes": 2
+    },
+    {
+      "character": "ヌ",
+      "strokes": 2
+    },
+    {
+      "character": "ネ",
+      "strokes": 4
+    },
+    {
+      "character": "ノ",
+      "strokes": 1
+    },
+    {
+      "character": "ハ",
+      "strokes": 2
+    },
+    {
+      "character": "バ",
+      "strokes": 4
+    },
+    {
+      "character": "パ",
+      "strokes": 3
+    },
+    {
+      "character": "ヒ",
+      "strokes": 2
+    },
+    {
+      "character": "ビ",
+      "strokes": 4
+    },
+    {
+      "character": "ピ",
+      "strokes": 3
+    },
+    {
+      "character": "フ",
+      "strokes": 1
+    },
+    {
+      "character": "ブ",
+      "strokes": 3
+    },
+    {
+      "character": "プ",
+      "strokes": 2
+    },
+    {
+      "character": "ヘ",
+      "strokes": 1
+    },
+    {
+      "character": "ベ",
+      "strokes": 3
+    },
+    {
+      "character": "ペ",
+      "strokes": 2
+    },
+    {
+      "character": "ホ",
+      "strokes": 4
+    },
+    {
+      "character": "ボ",
+      "strokes": 6
+    },
+    {
+      "character": "ポ",
+      "strokes": 5
+    },
+    {
+      "character": "マ",
+      "strokes": 2
+    },
+    {
+      "character": "ミ",
+      "strokes": 3
+    },
+    {
+      "character": "ム",
+      "strokes": 2
+    },
+    {
+      "character": "メ",
+      "strokes": 2
+    },
+    {
+      "character": "モ",
+      "strokes": 3
+    },
+    {
+      "character": "ヤ",
+      "strokes": 2
+    },
+    {
+      "character": "ャ",
+      "strokes": 2
+    },
+    {
+      "character": "ユ",
+      "strokes": 2
+    },
+    {
+      "character": "ュ",
+      "strokes": 2
+    },
+    {
+      "character": "ヨ",
+      "strokes": 3
+    },
+    {
+      "character": "ョ",
+      "strokes": 3
+    },
+    {
+      "character": "ラ",
+      "strokes": 2
+    },
+    {
+      "character": "リ",
+      "strokes": 2
+    },
+    {
+      "character": "ル",
+      "strokes": 2
+    },
+    {
+      "character": "レ",
+      "strokes": 1
+    },
+    {
+      "character": "ロ",
+      "strokes": 3
+    },
+    {
+      "character": "ワ",
+      "strokes": 2
+    },
+    {
+      "character": "ヮ",
+      "strokes": 2
+    },
+    {
+      "character": "ヲ",
+      "strokes": 3
+    },
+    {
+      "character": "ン",
+      "strokes": 2
+    },
+    {
+      "character": "ヴ",
+      "strokes": 5
+    },
+    {
+      "character": "ー",
+      "strokes": 1
+    },
+    {
+      "character": "ヽ",
+      "strokes": 1
+    },
+    {
+      "character": "ヾ",
+      "strokes": 3
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Seed Data
 
-This folder contains the full seed pipeline: extraction, normalization, artifact emission, and remote update logic.
+This folder contains the runtime seeding contracts, adapters, and manifest updater.
 
 ## Pipeline Overview
 
@@ -15,16 +15,13 @@ seeds/input/*.json
 
 ## Key Modules
 
-| File                  | Purpose                                                                       |
-| --------------------- | ----------------------------------------------------------------------------- |
-| `types.ts`            | Core seed pack contracts (`RawSeedPack`, `VocabItem`, etc.)                   |
-| `seedManifest.ts`     | Zod schema for `seed-manifest.json`                                           |
-| `extractionTypes.ts`  | Intermediate record types produced by source extractors                       |
-| `idGeneration.ts`     | Deterministic ID generation (vocab hash, kanji codepoint, sentence source ID) |
-| `extractors/`         | Per-source extractor modules (JMDict, KanjiAPI, Tatoeba) + orchestrator       |
-| `normalizeAndLink.ts` | Phase 4-5: dedup, JLPT inference, sentence → vocab linking, QA report         |
-| `ingestSeedData.ts`   | Transactional Dexie ingestion for single and batch packs                      |
-| `remoteSeedUpdate.ts` | Remote manifest fetch, checksum verify, schema parse, and apply               |
+| File                  | Purpose                                                         |
+| --------------------- | --------------------------------------------------------------- |
+| `types.ts`            | Core seed pack contracts (`RawSeedPack`, `VocabItem`, etc.)     |
+| `seedManifest.ts`     | Zod schema for `seed-manifest.json`                             |
+| `kanaStrokeSeed.ts`   | Remote pack loader + validation for kana stroke trainer         |
+| `ingestSeedData.ts`   | Transactional Dexie ingestion for single and batch packs        |
+| `remoteSeedUpdate.ts` | Remote manifest fetch, checksum verify, schema parse, and apply |
 
 ## Remote Update Flow
 

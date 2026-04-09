@@ -1,6 +1,6 @@
 {
   "manifestVersion": "1.0.0",
-  "published": "2026-04-09T05:36:03.475Z",
+  "published": "2026-04-09T10:31:52.192Z",
   "packs": [
     {
       "id": "jlpt-n3-vocab",
@@ -8,7 +8,7 @@
       "level": "N3",
       "packVersion": 1,
       "recordCount": 10,
-      "sha256": "1eb1f46a1d33a7cd92844b45b798840430db6fcfeac253ee95fd65e995a855a0",
+      "sha256": "d21fd2985da61d96ec00905734d670af3c83ce665d810bfda5a64cfcc19c76b1",
       "url": "https://raw.githubusercontent.com/qornanali/mirai-study/refs/heads/main/seeds/v2026-04-09/jlpt-n3-vocab.json",
       "sourceAttribution": "local: Mirai Study local kana vocab"
     },
@@ -18,7 +18,7 @@
       "level": "N4",
       "packVersion": 1,
       "recordCount": 10,
-      "sha256": "bbc90f73c5730899bf600ffdb53596a1489db6e0420203b44c4a2bbc6bb68ca5",
+      "sha256": "113269526a4651dfbcd055df14f2fd81b629037315e73f15da052ed76a393b53",
       "url": "https://raw.githubusercontent.com/qornanali/mirai-study/refs/heads/main/seeds/v2026-04-09/jlpt-n4-vocab.json",
       "sourceAttribution": "local: Mirai Study local kana vocab"
     },
@@ -28,9 +28,29 @@
       "level": "N5",
       "packVersion": 1,
       "recordCount": 10,
-      "sha256": "abe27d491875ac655637a87cecae4d5ee566d0f2497776a1dbaebe7cf4ccabd4",
+      "sha256": "f02b21f950829d51ac611e3440e3df4ca64b86770347209e5b5d384179f1e292",
       "url": "https://raw.githubusercontent.com/qornanali/mirai-study/refs/heads/main/seeds/v2026-04-09/jlpt-n5-vocab.json",
       "sourceAttribution": "local: Mirai Study local kana vocab"
+    },
+    {
+      "id": "kana-hiragana-strokes",
+      "type": "hiragana",
+      "level": "N5",
+      "packVersion": 1,
+      "recordCount": 85,
+      "sha256": "c0c5b2bb6fcf2bd3f9819fb45318c89c83c5ac018bbbaf3e2c41e9b29b7399c4",
+      "url": "https://raw.githubusercontent.com/qornanali/mirai-study/refs/heads/main/seeds/v2026-04-09/kana-hiragana-strokes.json",
+      "sourceAttribution": "local: Mirai Study local kana stroke metadata"
+    },
+    {
+      "id": "kana-katakana-strokes",
+      "type": "katakana",
+      "level": "N5",
+      "packVersion": 1,
+      "recordCount": 85,
+      "sha256": "929c099d2de40eb0cbe2f7940fe28dc457b37ffcb0e965ed0bc222733be3cfcd",
+      "url": "https://raw.githubusercontent.com/qornanali/mirai-study/refs/heads/main/seeds/v2026-04-09/kana-katakana-strokes.json",
+      "sourceAttribution": "local: Mirai Study local kana stroke metadata"
     }
   ]
 }
