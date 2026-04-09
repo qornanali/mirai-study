@@ -4,6 +4,11 @@ export const starterN5Seed: RawSeedPack = {
   id: "starter-n5",
   level: "N5",
   version: 1,
+  schemaVersion: "1.0.0",
+  sourceAttribution: {
+    source: "local",
+    attribution: "Mirai Study - N5 starter vocabulary",
+  },
   vocab: [
     {
       id: "n5-vocab-cat",

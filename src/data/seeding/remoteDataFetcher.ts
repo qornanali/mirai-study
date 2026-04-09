@@ -138,6 +138,12 @@ export class RemoteDataFetcher {
         id: "jlpt-n5-n3-enriched",
         level: "N5",
         version: 1,
+        schemaVersion: "1.0.0",
+        sourceAttribution: {
+          source: "jisho",
+          attribution: "Jisho.org - Japanese-English Dictionary API",
+          licenseUrl: "https://jisho.org/about",
+        },
         vocab: allVocab,
         kanji: [],
         sentences: [],

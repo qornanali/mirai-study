@@ -4,6 +4,11 @@ export const jlptN3Seed: RawSeedPack = {
   id: "jlpt-n3",
   level: "N3",
   version: 1,
+  schemaVersion: "1.0.0",
+  sourceAttribution: {
+    source: "local",
+    attribution: "Mirai Study - N3 vocabulary",
+  },
   vocab: [
     // N3 verbs
     {
