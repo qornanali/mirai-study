@@ -6,4 +6,5 @@ export * from "./remoteDataFetcher";
 export * from "./starterN5Seed";
 export * from "./jlptN4Seed";
 export * from "./jlptN3Seed";
+export * from "./normalizeAndLink";
 export * from "./types";
